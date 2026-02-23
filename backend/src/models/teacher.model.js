@@ -21,8 +21,8 @@ const teacherSchema = new mongoose.Schema({
     type: String,
     required: true
   },
-  courseTutor: {
-    type: String,
+  courseId: {
+    type: mongoose.Schema.Types.ObjectId,
     ref: "Course"
   },
 

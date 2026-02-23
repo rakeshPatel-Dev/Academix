@@ -11,11 +11,6 @@ const studentSchema = new mongoose.Schema({
     required: true,
     unique: true
   },
-  password: {
-    type: String,
-    required: true,
-    unique: true
-  },
   address: {
     type: String,
   },
@@ -23,7 +18,7 @@ const studentSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  courseEnrolled: {
+  courseId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Course",
   },
