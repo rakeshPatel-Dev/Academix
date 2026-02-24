@@ -31,6 +31,7 @@ const connectDB = async () => {
     }
 
     cached.conn = await cached.promise;
+
     console.log('✅ Database connected successfully');
     return cached.conn;
 

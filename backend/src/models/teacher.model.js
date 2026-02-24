@@ -8,7 +8,9 @@ const teacherSchema = new mongoose.Schema({
   },
   email: {
     type: String,
-    required: true
+    required: true,
+    unique: true,
+    trim: true,
   },
   post: {
     type: String,
@@ -21,10 +23,12 @@ const teacherSchema = new mongoose.Schema({
     type: String,
     required: true
   },
-  courseId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Course"
-  },
+  courseId: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Course"
+    }
+  ]
 
 }, { timestamps: true })
 

@@ -9,7 +9,8 @@ const studentSchema = new mongoose.Schema({
   email: {
     type: String,
     required: true,
-    unique: true
+    unique: true,
+    trim: true,
   },
   address: {
     type: String,
@@ -18,10 +19,12 @@ const studentSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  courseId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Course",
-  },
+  courseId: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Course",
+    }
+  ],
   shift: {
     type: String,
     enum: ["morning", "evening"],
