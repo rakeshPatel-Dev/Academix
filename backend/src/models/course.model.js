@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 
+
 const courseSchema = new mongoose.Schema({
 
   title: {
@@ -14,16 +15,11 @@ const courseSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  student: [
-    {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Student"
-    }
-  ],
   teacher: [
     {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Teacher"
+      ref: "Teacher",
+      default: null
     }
   ]
 

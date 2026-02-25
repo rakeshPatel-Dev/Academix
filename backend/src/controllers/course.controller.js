@@ -1,11 +1,12 @@
 import Course from "../models/course.model.js";
+import Teacher from "../models/teacher.model.js"
 
 
 // @desc    Create new course
 // @route   POST /api/courses
 export const createCourse = async (req, res) => {
   try {
-    const { title, description, student, teacher, imageURL } = req.body;
+    const { title, description, teacher, imageURL } = req.body;
 
     // Validate required fields
     if (!title || !description, !imageURL) {
@@ -27,7 +28,6 @@ export const createCourse = async (req, res) => {
     const course = await Course.create({
       title,
       description,
-      student,
       teacher,
       imageURL
     });
@@ -55,17 +55,16 @@ export const getAllCourses = async (req, res) => {
   try {
 
     const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
+    const limit = parseInt(req.query.limit) || 6;
     const skip = (page - 1) * limit;
 
     const totalCourses = await Course.countDocuments();
     const totalPages = Math.ceil(totalCourses / limit);
 
     const courses = await Course.find()
-      .populate('student')
-      .populate('teacher')
       .skip(skip)
-      .limit(limit);
+      .limit(limit)
+      .sort({ createdAt: -1 })
 
     res.status(200).json({
       success: true,
@@ -203,23 +202,14 @@ export const deleteCourse = async (req, res) => {
       });
     }
 
-    // // Check if course has teachers assigned
-    // const teacherCount = await Teacher.countDocuments({ coursId: req.params.id });
-    // if (teacherCount > 0) {
-    //   return res.status(400).json({
-    //     success: false,
-    //     message: `Cannot delete course. It has ${teacherCount} teacher(s) assigned. Please reassign or delete teachers first.`,
-    //   });
-    // }
-
-    // // Check if course has students enrolled
-    // const studentCount = await Student.countDocuments({ courseId: req.params.id });
-    // if (studentCount > 0) {
-    //   return res.status(400).json({
-    //     success: false,
-    //     message: `Cannot delete course. It has ${studentCount} student(s) enrolled. Please reassign or delete students first.`,
-    //   });
-    // }
+    // Check if course has teachers assigned
+    const teacherCount = await Teacher.countDocuments({ coursId: req.params.id });
+    if (teacherCount > 0) {
+      return res.status(400).json({
+        success: false,
+        message: `Cannot delete course. It has ${teacherCount} teacher(s) assigned. Please reassign or delete teachers first.`,
+      });
+    }
 
     // If no dependencies, delete the course
     await Course.findByIdAndDelete(req.params.id);
@@ -237,7 +227,6 @@ export const deleteCourse = async (req, res) => {
         message: "Invalid course ID format",
       });
     }
-
     res.status(500).json({
       success: false,
       message: "Failed to delete course",

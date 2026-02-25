@@ -17,17 +17,10 @@ const connectDB = async () => {
     return cached.conn;
   }
 
-  // Connection options (minimum required for production)
-  const options = {
-    maxPoolSize: 10,              // Prevent connection exhaustion
-    serverSelectionTimeoutMS: 5000, // Fail fast if DB is down
-    socketTimeoutMS: 45000,        // Close idle connections
-  };
-
   try {
     // Create new connection if no cached promise
     if (!cached.promise) {
-      cached.promise = mongoose.connect(MONGODB_URI, options);
+      cached.promise = mongoose.connect(MONGODB_URI);
     }
 
     cached.conn = await cached.promise;
@@ -49,10 +42,5 @@ mongoose.connection.on('disconnected', () => {
   cached.promise = null;
 });
 
-// Graceful shutdown
-process.on('SIGTERM', async () => {
-  await mongoose.connection.close();
-  process.exit(0);
-});
 
 export default connectDB;

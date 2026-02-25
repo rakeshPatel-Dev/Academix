@@ -7,6 +7,7 @@ import Courses from './pages/Courses'
 import Teachers from './pages/Teachers'
 import Students from './pages/Students'
 import AddCourse from './pages/CreateCourse'
+import EditCourse from './pages/EditCourse'
 
 const App = () => {
   return (
@@ -19,6 +20,7 @@ const App = () => {
         <Route path='/teachers' element={<Teachers />} />
         <Route path='/students' element={<Students />} />
         <Route path='/courses/new' element={<AddCourse />} />
+        <Route path="/courses/edit/:id" element={<EditCourse />} />
       </Routes>
     </div>
   )
