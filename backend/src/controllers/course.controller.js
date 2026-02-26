@@ -125,6 +125,103 @@ export const getCourseById = async (req, res) => {
   }
 };
 
+
+// @desc    Search courses by query
+// @route   GET /api/courses/search?q=math&page=1&limit=6
+export const searchCourses = async (req, res) => {
+  try {
+    const { q } = req.query;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 6;
+    const skip = (page - 1) * limit;
+
+    // Validate search query
+    if (!q || q.trim() === '') {
+      return res.status(400).json({
+        success: false,
+        message: "Please provide a search query"
+      });
+    }
+
+    // Sanitize search term (remove special regex characters)
+    const sanitizedQuery = q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+    // Build search query
+    const searchQuery = {
+      $or: [
+        { title: { $regex: sanitizedQuery, $options: "i" } },
+        { description: { $regex: sanitizedQuery, $options: "i" } },
+      ]
+    };
+
+    // Execute search with pagination
+    const [courses, totalCount] = await Promise.all([
+      Course.find(searchQuery)
+        .populate('teacher', 'name email post avatar')
+        .select('title description imageURL teacher createdAt')
+        .skip(skip)
+        .limit(limit)
+        .sort({ createdAt: -1 }),
+
+      Course.countDocuments(searchQuery)
+    ]);
+
+    // If no results
+    if (courses.length === 0) {
+      return res.status(200).json({
+        success: true,
+        message: "No courses found matching your search",
+        data: [],
+        pagination: {
+          page,
+          limit,
+          total: 0,
+          pages: 0
+        }
+      });
+    }
+
+    // Format response
+    const formattedCourses = courses.map(course => ({
+      id: course._id,
+      title: course.title,
+      description: course.description,
+      imageURL: course.imageURL,
+      teacher: course.teacher ? {
+        id: course.teacher._id,
+        name: course.teacher.name,
+        email: course.teacher.email,
+        post: course.teacher.post
+      } : null,
+      createdAt: course.createdAt
+    }));
+
+    res.status(200).json({
+      success: true,
+      message: "Courses fetched successfully",
+      data: formattedCourses,
+      pagination: {
+        page,
+        limit,
+        total: totalCount,
+        pages: Math.ceil(totalCount / limit),
+        hasNext: page < Math.ceil(totalCount / limit),
+        hasPrev: page > 1
+      },
+      searchTerm: q
+    });
+
+  } catch (error) {
+    console.error("❌ Course search error:", error);
+
+    res.status(500).json({
+      success: false,
+      message: "Failed to search courses",
+      error: error.message
+    });
+  }
+};
+
 // @desc    Update course
 // @route   PUT /api/courses/:id
 export const updateCourse = async (req, res) => {

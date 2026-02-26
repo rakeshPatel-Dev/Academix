@@ -12,6 +12,9 @@ const teacherSchema = new mongoose.Schema({
     unique: true,
     trim: true,
   },
+  avatar: {
+    type: String,
+  },
   post: {
     type: String,
     required: true
