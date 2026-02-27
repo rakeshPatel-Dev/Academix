@@ -10,6 +10,11 @@ import CreateCourse from './pages/course/CreateCourse';
 import EditCourse from './pages/course/EditCourse';
 import CreateTeacher from './pages/teacher/CreateTeacher';
 import EditTeacher from './pages/teacher/EditTeacher';
+import CreateStudent from './pages/student/CreateStudent';
+import EditStudent from './pages/student/EditStudent';
+import StudentProfile from './pages/profiles/StudentProfile';
+import CourseProfile from './pages/profiles/CourseProfile';
+import TeacherProfile from './pages/profiles/TeacherProfile';
 
 function App() {
   return (
@@ -20,16 +25,24 @@ function App() {
       {/* Main Content - Gets proper margin based on sidebar state */}
       <main className="flex-1 p-6 overflow-auto">
         <Routes>
-          <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/courses" element={<Courses />} />
           <Route path="/courses/new" element={<CreateCourse />} />
           <Route path="/courses/edit/:id" element={<EditCourse />} />
-          <Route path="/students" element={<Students />} />
+          <Route path="/courses/:id" element={<CourseProfile />} />
+
           <Route path="/teachers" element={<Teachers />} />
           <Route path="/teachers/new" element={<CreateTeacher />} />
           <Route path="/teachers/edit/:id" element={<EditTeacher />} />
+          <Route path="/teachers/:id" element={<TeacherProfile />} />
+
+          <Route path="/students" element={<Students />} />
+          <Route path="/students/new" element={<CreateStudent />} />
+          <Route path="/students/edit/:id" element={<EditStudent />} />
+          <Route path="/students/:id" element={<StudentProfile />} />
+
 
           <Route path="/" element={<Dashboard />} />
+          <Route path="/dashboard" element={<Dashboard />} />
         </Routes>
       </main>
     </div>

@@ -15,11 +15,14 @@ const studentSchema = new mongoose.Schema({
   address: {
     type: String,
   },
+  avatar: {
+    type: String,
+  },
   phone: {
     type: String,
     required: true,
   },
-  courseId: [
+  courses: [
     {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Course",
