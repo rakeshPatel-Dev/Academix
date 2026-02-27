@@ -12,29 +12,14 @@ export const getAllTeachers = async (req, res) => {
     const limit = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * limit;
 
-    // Add filtering
-    const filter = {};
-    if (req.query.post) filter.post = req.query.post;
-    if (req.query.courseId) filter.coursId = req.query.courseId;
 
-    const teachers = await Teacher.find(filter)
-      .populate('coursId', 'title description') // Fixed: coursId not courseTutor
+    const teachers = await Teacher.find()
+      .populate('courseId', 'title description imageURL') // Fixed: proper field selection
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit);
 
-    // Get student count for each teacher
-    const teachersWithStats = await Promise.all(
-      teachers.map(async (teacher) => {
-        const studentCount = await Student.countDocuments({ teacherId: teacher._id });
-        return {
-          ...teacher.toObject(),
-          studentCount,
-        };
-      })
-    );
-
-    const totalTeachers = await Teacher.countDocuments(filter);
+    const totalTeachers = await Teacher.countDocuments();
 
     res.status(200).json({
       success: true,
@@ -42,14 +27,14 @@ export const getAllTeachers = async (req, res) => {
       total: totalTeachers,
       totalPages: Math.ceil(totalTeachers / limit),
       currentPage: page,
-      data: teachersWithStats,
+      data: teachers,
     });
   } catch (error) {
     console.error('❌ Get teachers error:', error);
     res.status(500).json({
       success: false,
       message: "Failed to retrieve teachers",
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
+      error: error.message,
     });
   }
 };
@@ -59,7 +44,7 @@ export const getAllTeachers = async (req, res) => {
 export const getTeacherById = async (req, res) => {
   try {
     const teacher = await Teacher.findById(req.params.id)
-      .populate('coursId', 'title description');
+      .populate('courseId', 'title description');
 
     if (!teacher) {
       return res.status(404).json({
@@ -75,7 +60,7 @@ export const getTeacherById = async (req, res) => {
       .sort({ name: 1 });
 
     // Get course details
-    const course = await Course.findById(teacher.coursId);
+    const course = await Course.findById(teacher.courseId);
 
     res.status(200).json({
       success: true,
@@ -111,17 +96,39 @@ export const getTeacherById = async (req, res) => {
   }
 };
 
+// @desc    Get all teachers WITHOUT pagination (for dropdowns)
+// @route   GET /api/teachers/all
+export const getAllTeachersForDropdown = async (req, res) => {
+  try {
+    const teachers = await Teacher.find()
+      .select('name post avatar') // Only select needed fields
+      .sort({ name: 1 });
+
+    res.status(200).json({
+      success: true,
+      count: teachers.length,
+      data: teachers,
+    });
+  } catch (error) {
+    console.error('❌ Get all teachers error:', error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch teachers",
+    });
+  }
+};
+
 // @desc    Create new teacher
 // @route   POST /api/teachers
 export const createTeacher = async (req, res) => {
   try {
-    const { name, email, address, phone, coursId, post } = req.body;
+    const { name, email, avatar, address, phone, courseId, post } = req.body;
 
     // Validate required fields
-    if (!name || !email || !phone || !coursId || !post) {
+    if (!name || !email || !phone || !post) {
       return res.status(400).json({
         success: false,
-        message: "Please provide all required fields: name, email, phone, coursId, post",
+        message: "Please provide all required fields: name, email, phone, post",
       });
     }
 
@@ -135,13 +142,13 @@ export const createTeacher = async (req, res) => {
     }
 
     // Check if course exists
-    const courseExists = await Course.findById(coursId);
-    if (!courseExists) {
-      return res.status(400).json({
-        success: false,
-        message: "Assigned course does not exist",
-      });
-    }
+    // const courseExists = await Course.findById(courseId);
+    // if (!courseExists) {
+    //   return res.status(400).json({
+    //     success: false,
+    //     message: "Assigned course does not exist",
+    //   });
+    // }
 
     // Check if teacher with same phone exists (optional)
     const existingPhone = await Teacher.findOne({ phone });
@@ -157,12 +164,13 @@ export const createTeacher = async (req, res) => {
       email,
       address,
       phone,
-      coursId,
+      avatar,
+      courseId,
       post,
     });
 
     // Populate course details for response
-    await teacher.populate('coursId', 'title');
+    await teacher.populate('courseId', 'title');
 
     res.status(201).json({
       success: true,
@@ -184,7 +192,7 @@ export const createTeacher = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Failed to create teacher",
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
+      error: error.message,
     });
   }
 };
@@ -193,7 +201,7 @@ export const createTeacher = async (req, res) => {
 // @route   PUT /api/teachers/:id
 export const updateTeacher = async (req, res) => {
   try {
-    const { name, email, address, phone, coursId, post } = req.body;
+    const { name, email, address, avatar, phone, courseId, post } = req.body;
 
     // Check if teacher exists
     const teacherExists = await Teacher.findById(req.params.id);
@@ -235,8 +243,8 @@ export const updateTeacher = async (req, res) => {
     }
 
     // If course is being updated, check if it exists
-    if (coursId && coursId !== teacherExists.coursId.toString()) {
-      const courseExists = await Course.findById(coursId);
+    if (courseId && courseId !== teacherExists.courseId.toString()) {
+      const courseExists = await Course.findById(courseId);
       if (!courseExists) {
         return res.status(400).json({
           success: false,
@@ -247,12 +255,12 @@ export const updateTeacher = async (req, res) => {
 
     const teacher = await Teacher.findByIdAndUpdate(
       req.params.id,
-      { name, email, address, phone, coursId, post },
+      { name, email, address, phone, avatar, courseId, post },
       {
-        new: true,
+        returnDocument: "after",
         runValidators: true
       }
-    ).populate('coursId', 'title');
+    ).populate('courseId', 'title');
 
     res.status(200).json({
       success: true,
@@ -282,7 +290,9 @@ export const updateTeacher = async (req, res) => {
 export const deleteTeacher = async (req, res) => {
   try {
     // Check if teacher exists
-    const teacher = await Teacher.findById(req.params.id);
+    const teacher = await Teacher.findById(req.params.id)
+      .populate('courseId', 'title'); // Populate to get course titles for better error messages
+
     if (!teacher) {
       return res.status(404).json({
         success: false,
@@ -290,8 +300,22 @@ export const deleteTeacher = async (req, res) => {
       });
     }
 
-    // Check if teacher has students assigned
+    // ✅ Check for course assignments
+    const courseCount = teacher.courseId?.length || 0;
+
+    if (courseCount > 0) {
+      // Get course titles for better error message
+      const courseTitles = teacher.courseId.map(c => c.title).join(', ');
+
+      return res.status(400).json({
+        success: false,
+        message: `Cannot delete teacher. They are assigned to ${courseCount} course(s): ${courseTitles}. Please remove course assignments first.`,
+      });
+    }
+
+    // ✅ Check for student assignments
     const studentCount = await Student.countDocuments({ teacherId: req.params.id });
+
     if (studentCount > 0) {
       return res.status(400).json({
         success: false,
@@ -299,12 +323,14 @@ export const deleteTeacher = async (req, res) => {
       });
     }
 
+    // If all checks pass, delete the teacher
     await Teacher.findByIdAndDelete(req.params.id);
 
     res.status(200).json({
       success: true,
       message: "Teacher deleted successfully",
     });
+
   } catch (error) {
     console.error('❌ Delete teacher error:', error);
 
@@ -318,7 +344,7 @@ export const deleteTeacher = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Failed to delete teacher",
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
+      ...(process.env.NODE_ENV === 'development' && { error: error.message }),
     });
   }
 };
