@@ -225,23 +225,25 @@ export const updateCourse = async (req, res) => {
   try {
     const { title, description, imageURL, teacher } = req.body;
 
-    // Check if course exists
-    const courseExists = await Course.findById(req.params.id);
-    if (!courseExists) {
+    const course = await Course.findById(req.params.id);
+    if (!course) {
       return res.status(404).json({
         success: false,
         message: "Course not found",
       });
     }
 
-    // If title is being updated, check uniqueness
-    if (title && title !== courseExists.title) {
-      const existingCourse = await Course.findOne({
+    const oldTeacher = course.teacher?.toString();
+    const newTeacher = teacher || null;
+
+    // Title uniqueness check
+    if (title && title !== course.title) {
+      const exists = await Course.findOne({
         title,
-        _id: { $ne: req.params.id }
+        _id: { $ne: req.params.id },
       });
 
-      if (existingCourse) {
+      if (exists) {
         return res.status(400).json({
           success: false,
           message: "Another course with this title already exists",
@@ -249,53 +251,45 @@ export const updateCourse = async (req, res) => {
       }
     }
 
-    // ✅ IMPROVED: Build update object dynamically
-    const updateData = {};
-    if (title !== undefined) updateData.title = title;
-    if (description !== undefined) updateData.description = description;
-    if (imageURL !== undefined) updateData.imageURL = imageURL;
+    // Update course fields
+    course.title = title ?? course.title;
+    course.description = description ?? course.description;
+    course.imageURL = imageURL ?? course.imageURL;
+    course.teacher = newTeacher;
 
-    // ✅ FIXED: Handle teacher field (can be null to unassign)
-    if (teacher !== undefined) {
-      updateData.teacher = teacher || null;
+    await course.save();
+
+    // Remove course from old teacher
+    if (oldTeacher && oldTeacher !== newTeacher) {
+      await Teacher.findByIdAndUpdate(
+        oldTeacher,
+        { $pull: { courseId: course._id } }
+      );
     }
 
-    const course = await Course.findByIdAndUpdate(
-      req.params.id,
-      updateData,
-      {
-        returnDocument: 'after',
-        runValidators: true,
-      }
-    ).populate("teacher", "name email post avatar");
+    // Add course to new teacher
+    if (newTeacher && oldTeacher !== newTeacher) {
+      await Teacher.findByIdAndUpdate(
+        newTeacher,
+        { $addToSet: { courseId: course._id } }
+      );
+    }
+
+    const updatedCourse = await Course.findById(course._id)
+      .populate("teacher", "name email post avatar");
 
     res.status(200).json({
       success: true,
       message: "Course updated successfully",
-      data: course,
+      data: updatedCourse,
     });
+
   } catch (error) {
-    console.error('❌ Update course error:', error);
-
-    if (error.name === 'CastError') {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid course ID format",
-      });
-    }
-
-    // ✅ ADDED: Handle duplicate key error on update
-    if (error.code === 11000) {
-      return res.status(400).json({
-        success: false,
-        message: "Another course with this title already exists",
-      });
-    }
+    console.error(error);
 
     res.status(500).json({
       success: false,
       message: "Failed to update course",
-      ...(process.env.NODE_ENV === 'development' && { error: error.message }),
     });
   }
 };

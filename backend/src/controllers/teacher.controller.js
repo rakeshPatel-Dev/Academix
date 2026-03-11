@@ -197,90 +197,71 @@ export const createTeacher = async (req, res) => {
   }
 };
 
-// @desc    Update teacher
-// @route   PUT /api/teachers/:id
+
+// @desc Update teacher
+// @route PUT /api/teachers/:id
+
 export const updateTeacher = async (req, res) => {
   try {
-    const { name, email, address, avatar, phone, courseId, post } = req.body;
+    const { name, email, address, avatar, phone, post, courseId } = req.body;
 
-    // Check if teacher exists
-    const teacherExists = await Teacher.findById(req.params.id);
-    if (!teacherExists) {
+    const teacher = await Teacher.findById(req.params.id);
+    if (!teacher) {
       return res.status(404).json({
         success: false,
         message: "Teacher not found",
       });
     }
 
-    // If email is being updated, check if it's taken
-    if (email && email !== teacherExists.email) {
-      const existingTeacher = await Teacher.findOne({
-        email,
-        _id: { $ne: req.params.id }
-      });
+    const oldCourses = teacher.courseId.map(id => id.toString());
+    const newCourses = courseId ? courseId.map(id => id.toString()) : oldCourses;
 
-      if (existingTeacher) {
-        return res.status(400).json({
-          success: false,
-          message: "Email already in use by another teacher",
-        });
-      }
+    // Find differences
+    const coursesToAdd = newCourses.filter(id => !oldCourses.includes(id));
+    const coursesToRemove = oldCourses.filter(id => !newCourses.includes(id));
+
+    // Update teacher
+    teacher.name = name ?? teacher.name;
+    teacher.email = email ?? teacher.email;
+    teacher.address = address ?? teacher.address;
+    teacher.phone = phone ?? teacher.phone;
+    teacher.avatar = avatar ?? teacher.avatar;
+    teacher.post = post ?? teacher.post;
+    teacher.courseId = courseId ?? teacher.courseId;
+
+    await teacher.save();
+
+    // Add teacher to new courses
+    if (coursesToAdd.length > 0) {
+      await Course.updateMany(
+        { _id: { $in: coursesToAdd } },
+        { $addToSet: { teacher: teacher._id } }
+      );
     }
 
-    // If phone is being updated, check if it's taken
-    if (phone && phone !== teacherExists.phone) {
-      const existingPhone = await Teacher.findOne({
-        phone,
-        _id: { $ne: req.params.id }
-      });
-
-      if (existingPhone) {
-        return res.status(400).json({
-          success: false,
-          message: "Phone number already in use by another teacher",
-        });
-      }
+    // Remove teacher from old courses
+    if (coursesToRemove.length > 0) {
+      await Course.updateMany(
+        { _id: { $in: coursesToRemove } },
+        { $pull: { teacher: teacher._id } }
+      );
     }
 
-    // If course is being updated, check if it exists
-    if (courseId && courseId !== teacherExists.courseId.toString()) {
-      const courseExists = await Course.findById(courseId);
-      if (!courseExists) {
-        return res.status(400).json({
-          success: false,
-          message: "Assigned course does not exist",
-        });
-      }
-    }
-
-    const teacher = await Teacher.findByIdAndUpdate(
-      req.params.id,
-      { name, email, address, phone, avatar, courseId, post },
-      {
-        returnDocument: "after",
-        runValidators: true
-      }
-    ).populate('courseId', 'title');
+    const updatedTeacher = await Teacher.findById(teacher._id)
+      .populate("courseId", "title");
 
     res.status(200).json({
       success: true,
       message: "Teacher updated successfully",
-      data: teacher,
+      data: updatedTeacher,
     });
-  } catch (error) {
-    console.error('❌ Update teacher error:', error);
 
-    if (error.name === 'CastError') {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid teacher ID format",
-      });
-    }
+  } catch (error) {
+    console.error(error);
 
     res.status(500).json({
       success: false,
       message: "Failed to update teacher",
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
     });
   }
 };

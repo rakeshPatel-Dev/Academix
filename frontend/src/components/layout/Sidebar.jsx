@@ -29,6 +29,10 @@ const Sidebar = () => {
     avatar: null // or URL to avatar image
   };
 
+
+
+
+
   const navigationItems = [
     {
       title: 'Dashboard',
@@ -145,7 +149,7 @@ const Sidebar = () => {
           {!collapsed ? (
             <>
               <div className="flex items-center space-x-2">
-                <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-cyan-500 rounded-lg flex items-center justify-center">
+                <div className="w-8 h-8 bg-linear-to-r from-blue-600 to-cyan-500 rounded-lg flex items-center justify-center">
                   <span className="text-white font-bold text-lg">A</span>
                 </div>
                 <span className="font-bold text-xl text-gray-800">AcademiX</span>
@@ -159,7 +163,7 @@ const Sidebar = () => {
             </>
           ) : (
             <>
-              <div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-cyan-500 rounded-lg flex items-center justify-center">
+              <div className="w-10 h-10 bg-linear-to-r from-blue-600 to-cyan-500 rounded-lg flex items-center justify-center">
                 <span className="text-white font-bold text-xl">A</span>
               </div>
               <button
@@ -187,7 +191,7 @@ const Sidebar = () => {
                   `}
                 >
                   <div className="flex items-center space-x-3">
-                    <span className="flex-shrink-0">{item.icon}</span>
+                    <span className="shrink-0">{item.icon}</span>
                     {!collapsed && (
                       <span className="text-sm font-medium">{item.title}</span>
                     )}
@@ -211,16 +215,7 @@ const Sidebar = () => {
 
         {/* Bottom Section - Profile & Logout */}
         <div className="absolute bottom-0 left-0 right-0 border-t border-gray-200 bg-white p-3">
-          {/* Notifications - Optional extra */}
-          {!collapsed && (
-            <button className="w-full flex items-center justify-between px-3 py-2 mb-2 text-gray-600 hover:bg-gray-50 rounded-lg transition-colors">
-              <div className="flex items-center space-x-3">
-                <Bell size={18} />
-                <span className="text-sm">Notifications</span>
-              </div>
-              <span className="px-1.5 py-0.5 bg-red-500 text-white text-xs rounded-full">3</span>
-            </button>
-          )}
+
 
           {/* Bottom Navigation Items */}
           <ul className="space-y-1 mb-2">
@@ -235,7 +230,7 @@ const Sidebar = () => {
                     ${getColorClasses(item.color, location.pathname === item.path)}
                   `}
                 >
-                  <span className="flex-shrink-0">{item.icon}</span>
+                  <span className="shrink-0">{item.icon}</span>
                   {!collapsed && (
                     <span className="ml-3 text-sm">{item.title}</span>
                   )}
@@ -249,7 +244,7 @@ const Sidebar = () => {
             flex items-center ${collapsed ? 'justify-center' : 'space-x-3'} 
             p-2 bg-gray-50 rounded-lg
           `}>
-            <div className="flex-shrink-0">
+            <div className="shrink-0">
               {user.avatar ? (
                 <img
                   src={user.avatar}
@@ -257,7 +252,7 @@ const Sidebar = () => {
                   className="w-8 h-8 rounded-full object-cover"
                 />
               ) : (
-                <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-cyan-500 rounded-full flex items-center justify-center text-white font-semibold">
+                <div className="w-8 h-8 bg-linear-to-r from-blue-600 to-cyan-500 rounded-full flex items-center justify-center text-white font-semibold">
                   {user.name.charAt(0)}
                 </div>
               )}
