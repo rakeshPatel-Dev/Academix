@@ -85,7 +85,7 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-blue-50 via-white to-purple-50 py-12 px-4 sm:px-6 lg:px-8">
       {/* Decorative background */}
       <div className="absolute inset-0 bg-grid-pattern opacity-5 pointer-events-none"></div>
 
@@ -93,13 +93,13 @@ const Login = () => {
         {/* Logo and Header */}
         <div className="text-center">
           <div className="flex justify-center mb-4">
-            <div className="w-20 h-20 bg-gradient-to-r from-blue-600 to-cyan-500 rounded-2xl flex items-center justify-center shadow-xl transform rotate-3 hover:rotate-0 transition-transform duration-300">
+            <div className="w-20 h-20 bg-linear-to-r from-blue-600 to-cyan-500 rounded-2xl flex items-center justify-center shadow-xl transform rotate-3 hover:rotate-0 transition-transform duration-300">
               <Shield size={40} className="text-white" />
             </div>
           </div>
           <h2 className="text-3xl font-extrabold text-gray-900 mb-2">
             Welcome to{' '}
-            <span className="bg-gradient-to-r from-blue-600 to-cyan-500 bg-clip-text text-transparent">
+            <span className="bg-linear-to-r from-blue-600 to-cyan-500 bg-clip-text text-transparent">
               AcademiX
             </span>
           </h2>
@@ -225,7 +225,7 @@ const Login = () => {
               disabled={loading}
               className="
                 w-full flex justify-center items-center gap-2 py-3 px-4 
-                bg-gradient-to-r from-blue-600 to-cyan-500 
+                bg-linear-to-r from-blue-600 to-cyan-500 
                 hover:from-blue-700 hover:to-cyan-600 
                 text-white font-medium rounded-xl
                 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500
@@ -275,8 +275,8 @@ const Login = () => {
       <style jsx>{`
         .bg-grid-pattern {
           background-image: 
-            linear-gradient(to right, #e5e7eb 1px, transparent 1px),
-            linear-gradient(to bottom, #e5e7eb 1px, transparent 1px);
+            linear-linear(to right, #e5e7eb 1px, transparent 1px),
+            linear-linear(to bottom, #e5e7eb 1px, transparent 1px);
           background-size: 50px 50px;
         }
       `}</style>

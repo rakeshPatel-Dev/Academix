@@ -19,6 +19,7 @@ import {
   Loader
 } from 'lucide-react';
 import axios from 'axios';
+import toast from 'react-hot-toast';
 
 const API_URL = 'http://localhost:3000/api';
 
@@ -107,10 +108,10 @@ const Students = () => {
     try {
       await axios.delete(`${API_URL}/students/${id}`);
       setStudents(students.filter(student => (student._id || student.id) !== id));
-      alert('Student deleted successfully!');
+      toast.success('Student deleted successfully!');
     } catch (error) {
       console.error('Failed to delete student:', error);
-      alert(error.response?.data?.message || 'Failed to delete student');
+      toast.error(error.response?.data?.message || 'Failed to delete student');
     } finally {
       setDeleteLoading(prev => ({ ...prev, [id]: false }));
     }

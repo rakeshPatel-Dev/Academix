@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import TeacherForm from '../../components/forms/TeacherForm';
+import toast from 'react-hot-toast';
 
 const API_URL = 'http://localhost:3000/api';
 
@@ -37,7 +38,7 @@ const CreateTeacher = () => {
         phone: formData.phone,
         address: formData.address,
         post: formData.post,
-        imageURL: formData.avatar,
+        avatar: formData.avatar,
         courses: formData.courseIds // Array of course IDs
       };
 
@@ -47,13 +48,13 @@ const CreateTeacher = () => {
 
       console.log('📥 Create response:', response.data);
 
-      alert('Teacher created successfully!');
+      toast.success('Teacher created successfully!');
       navigate('/teachers');
 
     } catch (error) {
       console.error('❌ Error creating teacher:', error);
       const errorMessage = error.response?.data?.message || 'Failed to create teacher. Please try again.';
-      alert(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setIsSubmitting(false);
     }

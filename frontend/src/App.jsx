@@ -15,6 +15,7 @@ import EditStudent from './pages/student/EditStudent';
 import StudentProfile from './pages/profiles/StudentProfile';
 import CourseProfile from './pages/profiles/CourseProfile';
 import TeacherProfile from './pages/profiles/TeacherProfile';
+import { Toaster } from 'react-hot-toast';
 
 function App() {
   return (
@@ -24,6 +25,7 @@ function App() {
 
       {/* Main Content - Gets proper margin based on sidebar state */}
       <main className="flex-1 p-6 overflow-auto">
+        <Toaster position='top-center' />
         <Routes>
           <Route path="/courses" element={<Courses />} />
           <Route path="/courses/new" element={<CreateCourse />} />

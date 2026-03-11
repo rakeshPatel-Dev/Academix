@@ -3,6 +3,8 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import CourseForm from '../../components/forms/courseForm';
+import toast from "react-hot-toast"
+
 
 const API_URL = 'http://localhost:3000/api';
 
@@ -40,13 +42,13 @@ const CreateCourse = () => {
 
       await axios.post(`${API_URL}/courses`, apiData);
 
-      alert('Course created successfully!');
+      toast.success("Course create Successfully!")
       navigate('/courses');
 
     } catch (error) {
       console.error('Error creating course:', error);
       const errorMessage = error.response?.data?.message || 'Failed to create course. Please try again.';
-      alert(errorMessage);
+      toast.error(errorMessage)
     } finally {
       setIsSubmitting(false);
     }

@@ -37,6 +37,11 @@ const Sidebar = () => {
   };
 
   const { totals, loading, error } = useFetchMultipleApis(apiUrls);
+  // console.log(data.data);
+
+
+  // Calculate total sum if needed
+  // const totalCount = Object.values(totals).reduce((sum, value) => sum + value, 0);
 
   // Or access individual totals
   const teacherCount = totals.teachers || 0;

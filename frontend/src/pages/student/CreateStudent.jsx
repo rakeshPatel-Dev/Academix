@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import StudentForm from '../../components/forms/StudentForm';
+import toast from 'react-hot-toast';
 
 const API_URL = 'http://localhost:3000/api';
 
@@ -56,13 +57,13 @@ const CreateStudent = () => {
 
       console.log('📥 Create response:', response.data);
 
-      alert('Student created successfully!');
+      toast.success('Student created successfully!');
       navigate('/students');
 
     } catch (error) {
       console.error('❌ Error creating student:', error);
       const errorMessage = error.response?.data?.message || 'Failed to create student. Please try again.';
-      alert(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setIsSubmitting(false);
     }

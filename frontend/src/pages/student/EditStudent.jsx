@@ -4,6 +4,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { Loader } from 'lucide-react';
 import StudentForm from '../../components/forms/StudentForm';
+import toast from 'react-hot-toast';
 
 const API_URL = 'http://localhost:3000/api';
 
@@ -116,13 +117,13 @@ const EditStudent = () => {
 
       console.log('📥 Update response:', response.data);
 
-      alert('Student updated successfully!');
+      toast.success('Student updated successfully!');
       navigate('/students');
 
     } catch (error) {
       console.error('❌ Error updating student:', error);
       const errorMessage = error.response?.data?.message || 'Failed to update student. Please try again.';
-      alert(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setIsSubmitting(false);
     }

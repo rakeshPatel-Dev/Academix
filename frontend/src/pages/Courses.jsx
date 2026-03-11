@@ -15,6 +15,7 @@ import {
   Users2
 } from 'lucide-react';
 import axios from "axios";
+import toast from 'react-hot-toast';
 
 const API_URL = 'http://localhost:3000/api';
 
@@ -143,7 +144,7 @@ const Courses = () => {
       }
     } catch (error) {
       console.error("Failed to delete course:", error);
-      alert(error.response?.data?.message || "Failed to delete course");
+      toast(error.response?.data?.message || "Failed to delete course");
     } finally {
       setDeleteLoading(prev => ({ ...prev, [id]: false }));
     }

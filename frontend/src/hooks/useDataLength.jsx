@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 
 const useFetchMultipleApis = (urls) => {
   const [totals, setTotals] = useState({});
+  const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -26,18 +27,25 @@ const useFetchMultipleApis = (urls) => {
                 // Extract total based on your API response structure
                 // Assuming each API returns { total: number } or has a total field
                 const total = json.total || json.count || 0;
-                return { name, total };
+                return { name, total, apiData: json };
               })
           )
         );
 
-        // Convert array to object
+        // Convert array to object for totals
         const newTotals = responses.reduce((acc, { name, total }) => {
           acc[name] = total;
           return acc;
         }, {});
 
+        // Store full API responses
+        const allData = responses.map(({ name, apiData }) => ({
+          name,
+          ...apiData,
+        }));
+
         setTotals(newTotals);
+        setData(allData);
 
       } catch (err) {
         setError(err.message);
@@ -51,7 +59,7 @@ const useFetchMultipleApis = (urls) => {
     }
   }, []);
 
-  return { totals, loading, error };
+  return { totals, data, loading, error };
 };
 
 export default useFetchMultipleApis;
