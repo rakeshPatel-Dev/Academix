@@ -1,5 +1,5 @@
 // components/Sidebar.jsx
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard,
@@ -15,6 +15,7 @@ import {
   Menu,
   X
 } from 'lucide-react';
+import useFetchMultipleApis from '../../hooks/useDataLength';
 
 const Sidebar = () => {
   const [collapsed, setCollapsed] = useState(false);
@@ -29,9 +30,26 @@ const Sidebar = () => {
     avatar: null // or URL to avatar image
   };
 
+  const apiUrls = {
+    teachers: "http://localhost:3000/api/teachers",
+    students: "http://localhost:3000/api/students",
+    courses: "http://localhost:3000/api/courses",
+  };
 
+  const { totals, loading, error } = useFetchMultipleApis(apiUrls);
 
+  // Or access individual totals
+  const teacherCount = totals.teachers || 0;
+  const studentCount = totals.students || 0;
+  const courseCount = totals.courses || 0;
 
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
+  if (error) {
+    return <div>Error: {error}</div>;
+  }
 
   const navigationItems = [
     {
@@ -45,21 +63,21 @@ const Sidebar = () => {
       title: 'Courses',
       icon: <BookOpen size={20} />,
       path: '/courses',
-      badge: '12', // Dynamic count
+      badge: courseCount, // Dynamic count
       color: 'green'
     },
     {
       title: 'Students',
       icon: <Users size={20} />,
       path: '/students',
-      badge: '156', // Dynamic count
+      badge: studentCount, // Dynamic count
       color: 'cyan'
     },
     {
       title: 'Teachers',
       icon: <GraduationCap size={20} />,
       path: '/teachers',
-      badge: '24', // Dynamic count
+      badge: teacherCount, // Dynamic count
       color: 'purple'
     }
   ];
