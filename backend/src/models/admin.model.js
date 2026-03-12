@@ -16,7 +16,7 @@ const adminSchema = new mongoose.Schema({
     required: true,
     unique: true
   },
-  imageURL: {
+  avatar: {
     type: String,
     required: true,
   },

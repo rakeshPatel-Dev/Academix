@@ -7,13 +7,13 @@ import bcrypt from "bcrypt";
 // @route   POST /api/admins/register
 export const registerAdmin = async (req, res) => {
   try {
-    const { email, password, name, imageURL } = req.body;
+    const { email, password, name, avatar, confirmPassword } = req.body;
 
     // Validate required fields
-    if (!email || !password || !name || !imageURL) {
+    if (!email || !password || !name || !avatar || !confirmPassword) {
       return res.status(400).json({
         success: false,
-        message: "Name, email, password and image URL are required.",
+        message: "Name, email, password and image URL, and confirm password are required.",
       });
     }
 
@@ -26,6 +26,14 @@ export const registerAdmin = async (req, res) => {
       });
     }
 
+    // Check if passwords match
+    if (password !== confirmPassword) {
+      return res.status(400).json({
+        success: false,
+        message: "Passwords do not match.",
+      });
+    }
+
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -34,7 +42,22 @@ export const registerAdmin = async (req, res) => {
       name,
       email,
       password: hashedPassword,
-      imageURL,
+      avatar,
+    });
+
+    // create token
+    const token = jwt.sign({
+      id: admin._id,
+      email: admin.email
+    }, process.env.JWT_SECRET, { expiresIn: "7d" });
+
+    // Set cookie with proper options for browser
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      path: "/",
     });
 
     // Remove password from response
@@ -43,8 +66,9 @@ export const registerAdmin = async (req, res) => {
 
     res.status(201).json({
       success: true,
-      message: "Admin created successfully!",
+      message: "Admin created successfully! You can now login.",
       data: adminResponse,
+      token
     });
 
   } catch (error) {
@@ -75,7 +99,7 @@ export const loginAdmin = async (req, res) => {
     if (!admin) {
       return res.status(401).json({
         success: false,
-        message: "Invalid email or password.",
+        message: "User with this email does not exist.",
       });
     }
 
@@ -94,18 +118,18 @@ export const loginAdmin = async (req, res) => {
       {
         id: admin._id,
         email: admin.email,
-        name: admin.name
       },
       process.env.JWT_SECRET,
       { expiresIn: "7d" }
     );
 
-    // Set cookie
-    res.cookie("authToken", token, {
+    // Set cookie with proper options for browser
+    res.cookie("token", token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-      maxAge: 7 * 24 * 60 * 60 * 1000
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      path: "/",
     });
 
     // Remove password from response
@@ -131,14 +155,120 @@ export const loginAdmin = async (req, res) => {
 // @desc    Logout admin
 // @route   POST /api/admins/logout
 export const logoutAdmin = (req, res) => {
-  res.clearCookie("authToken", {
+  res.clearCookie("token", {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'strict'
+    secure: process.env.NODE_ENV === "production",
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+    path: "/",
   });
 
   res.status(200).json({
     success: true,
     message: "Logged out successfully.",
   });
+};
+
+// @desc    Get current admin profile
+// @route   GET /api/admins/profile
+export const getCurrentAdminProfile = async (req, res) => {
+  try {
+    // Get admin ID from the authenticated user (set by auth middleware)
+    const adminId = req.user.id;
+
+    const admin = await Admin.findById(adminId).select('-password');
+
+    if (!admin) {
+      return res.status(404).json({
+        success: false,
+        message: "Admin not found"
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: admin
+    });
+
+  } catch (error) {
+    console.error("❌ Get profile error:", error);
+    res.status(500).json({
+      success: false,
+      message: `Failed to get profile. ${error.message}`
+    });
+  }
+};
+
+// @desc    Update current admin profile
+// @route   PUT /api/admins/profile
+export const updateCurrentAdminProfile = async (req, res) => {
+  try {
+    const { name, email, avatar } = req.body;
+
+    // Get admin ID from the authenticated user (set by auth middleware)
+    const adminId = req.user.id;
+
+    // Validate required fields
+    if (!name || !email) {
+      return res.status(400).json({
+        success: false,
+        message: "Name and email are required."
+      });
+    }
+
+    // Check if email is already taken by another admin
+    if (email) {
+      const existingAdmin = await Admin.findOne({
+        email,
+        _id: { $ne: adminId }
+      });
+
+      if (existingAdmin) {
+        return res.status(409).json({
+          success: false,
+          message: "Email is already in use by another admin"
+        });
+      }
+    }
+
+    // Validate email format
+    const emailRegex = /^\S+@\S+\.\S+$/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({
+        success: false,
+        message: "Please enter a valid email address"
+      });
+    }
+
+    // Update admin
+    const updatedAdmin = await Admin.findByIdAndUpdate(
+      adminId,
+      {
+        name,
+        email,
+        avatar,
+        updatedAt: Date.now()
+      },
+      { new: true, runValidators: true }
+    ).select('-password');
+
+    if (!updatedAdmin) {
+      return res.status(404).json({
+        success: false,
+        message: "Admin not found"
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Profile updated successfully",
+      data: updatedAdmin
+    });
+
+  } catch (error) {
+    console.error("❌ Update profile error:", error);
+    res.status(500).json({
+      success: false,
+      message: `Failed to update profile. ${error.message}`
+    });
+  }
 };

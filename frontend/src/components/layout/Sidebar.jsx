@@ -1,6 +1,7 @@
 // components/Sidebar.jsx
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
+import { useAuth } from '../../hooks/useAuth';
 import {
   LayoutDashboard,
   BookOpen,
@@ -11,50 +12,56 @@ import {
   ChevronRight,
   GraduationCap,
   Settings,
-  Bell,
   Menu,
   X
 } from 'lucide-react';
 import useFetchMultipleApis from '../../hooks/useDataLength';
+import toast from 'react-hot-toast';
 
 const Sidebar = () => {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const location = useLocation();
+  const { user, logout, isAuthenticated } = useAuth();
 
-  // Mock user data - replace with actual auth context
-  const user = {
-    name: 'John Doe',
-    email: 'john@academix.com',
-    role: 'Administrator',
-    avatar: null // or URL to avatar image
-  };
+  // Memoize the urls object to prevent recreation on every render
+  const apiUrls = useMemo(() => {
+    if (!isAuthenticated) return {};
 
-  const apiUrls = {
-    teachers: "http://localhost:3000/api/teachers",
-    students: "http://localhost:3000/api/students",
-    courses: "http://localhost:3000/api/courses",
-  };
+    return {
+      teachers: "http://localhost:3000/api/teachers",
+      students: "http://localhost:3000/api/students",
+      courses: "http://localhost:3000/api/courses",
+    };
+  }, [isAuthenticated]); // Only recreate when isAuthenticated changes
 
   const { totals, loading, error } = useFetchMultipleApis(apiUrls);
-  // console.log(data.data);
 
+  // Handle error toast
+  useEffect(() => {
+    if (error) {
+      toast.error(error);
+    }
+  }, [error]);
 
-  // Calculate total sum if needed
-  // const totalCount = Object.values(totals).reduce((sum, value) => sum + value, 0);
+  // Don't render sidebar if not authenticated
+  if (!isAuthenticated) {
+    return null;
+  }
 
   // Or access individual totals
   const teacherCount = totals.teachers || 0;
   const studentCount = totals.students || 0;
   const courseCount = totals.courses || 0;
 
-  if (loading) {
-    return <div>Loading...</div>;
-  }
-
-  if (error) {
-    return <div>Error: {error}</div>;
-  }
+  const handleLogout = async () => {
+    try {
+      await logout();
+      toast.success('Logout successful!');
+    } catch (error) {
+      toast.error('Logout failed. Please try again.');
+    }
+  };
 
   const navigationItems = [
     {
@@ -68,21 +75,21 @@ const Sidebar = () => {
       title: 'Courses',
       icon: <BookOpen size={20} />,
       path: '/courses',
-      badge: courseCount, // Dynamic count
+      badge: courseCount,
       color: 'green'
     },
     {
       title: 'Students',
       icon: <Users size={20} />,
       path: '/students',
-      badge: studentCount, // Dynamic count
+      badge: studentCount,
       color: 'cyan'
     },
     {
       title: 'Teachers',
       icon: <GraduationCap size={20} />,
       path: '/teachers',
-      badge: teacherCount, // Dynamic count
+      badge: teacherCount,
       color: 'purple'
     }
   ];
@@ -158,7 +165,7 @@ const Sidebar = () => {
       {/* Sidebar */}
       <aside
         className={`
-          fixed top-0 left-0 h-full bg-white shadow-xl z-50
+           top-0 left-0 h-full bg-white shadow-xl z-50
           transition-all duration-300 ease-in-out
           ${collapsed ? 'w-20' : 'w-64'}
           ${mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
@@ -186,8 +193,8 @@ const Sidebar = () => {
             </>
           ) : (
             <>
-              <div className="w-10 h-10 bg-linear-to-r from-blue-600 to-cyan-500 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-xl">A</span>
+              <div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-cyan-500 rounded-lg flex items-center justify-center">
+                <span className="text-white font-bold text-xl">{user?.name?.charAt(0) || 'A'}</span>
               </div>
               <button
                 onClick={toggleSidebar}
@@ -198,6 +205,13 @@ const Sidebar = () => {
             </>
           )}
         </div>
+
+        {/* Loading indicator for data */}
+        {loading && (
+          <div className="absolute top-16 left-0 right-0 h-1 bg-gray-100 overflow-hidden">
+            <div className="h-full bg-blue-600 animate-pulse" style={{ width: '30%' }}></div>
+          </div>
+        )}
 
         {/* Navigation Items */}
         <nav className="flex-1 overflow-y-auto py-4 px-3 h-[calc(100%-8rem)]">
@@ -219,7 +233,7 @@ const Sidebar = () => {
                       <span className="text-sm font-medium">{item.title}</span>
                     )}
                   </div>
-                  {!collapsed && item.badge && (
+                  {!collapsed && item.badge !== null && item.badge > 0 && (
                     <span className={`
                       px-2 py-0.5 text-xs font-medium rounded-full
                       ${location.pathname === item.path
@@ -238,8 +252,6 @@ const Sidebar = () => {
 
         {/* Bottom Section - Profile & Logout */}
         <div className="absolute bottom-0 left-0 right-0 border-t border-gray-200 bg-white p-3">
-
-
           {/* Bottom Navigation Items */}
           <ul className="space-y-1 mb-2">
             {bottomItems.map((item) => (
@@ -268,30 +280,34 @@ const Sidebar = () => {
             p-2 bg-gray-50 rounded-lg
           `}>
             <div className="shrink-0">
-              {user.avatar ? (
+              {user?.avatar ? (
                 <img
                   src={user.avatar}
                   alt={user.name}
                   className="w-8 h-8 rounded-full object-cover"
+                  onError={(e) => {
+                    e.target.onerror = null;
+                    e.target.src = `https://ui-avatars.com/api/?name=${user.name}&background=3b82f6&color=fff`;
+                  }}
                 />
               ) : (
-                <div className="w-8 h-8 bg-linear-to-r from-blue-600 to-cyan-500 rounded-full flex items-center justify-center text-white font-semibold">
-                  {user.name.charAt(0)}
+                <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-cyan-500 rounded-full flex items-center justify-center text-white font-semibold">
+                  {user?.name?.charAt(0) || 'A'}
                 </div>
               )}
             </div>
 
-            {!collapsed && (
+            {!collapsed && user && (
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-gray-900 truncate">
                   {user.name}
                 </p>
-                <p className="text-xs text-gray-500 truncate">{user.role}</p>
+                <p className="text-xs text-gray-500 truncate">Administrator</p>
               </div>
             )}
 
             <button
-              onClick={() => console.log('Logout clicked')}
+              onClick={handleLogout}
               className={`
                 p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors
                 ${collapsed ? 'ml-0' : ''}
@@ -303,15 +319,6 @@ const Sidebar = () => {
           </div>
         </div>
       </aside>
-
-      {/* Main content padding */}
-      <div className={`
-        transition-all duration-300
-        ${collapsed ? 'lg:ml-20' : 'lg:ml-64'}
-        ml-0
-      `}>
-        {/* Your main content goes here */}
-      </div>
     </>
   );
 };

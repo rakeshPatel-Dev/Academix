@@ -41,7 +41,6 @@ const Students = () => {
       setError(null);
 
       const response = await axios.get(`${API_URL}/students`);
-      console.log('Students API Response:', response.data);
 
       // Handle different API response structures
       const studentsData = response.data.data || response.data.students || response.data;
@@ -59,7 +58,6 @@ const Students = () => {
   const fetchCourses = async () => {
     try {
       const response = await axios.get(`${API_URL}/courses/all`);
-      console.log('Courses API Response:', response.data);
 
       const coursesData = response.data.data || response.data.courses || response.data;
       setCourses(Array.isArray(coursesData) ? coursesData : []);

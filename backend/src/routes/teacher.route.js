@@ -6,19 +6,21 @@ import {
   deleteTeacher,
   getAllTeachersForDropdown
 } from "../controllers/teacher.controller.js";
+import { authenticateAdmin } from "../middlewares/auth.middleware.js";
+
 import express from "express";
 
 const router = express.Router();
 
-router.get("/all", getAllTeachersForDropdown)
+router.get("/all", authenticateAdmin, getAllTeachersForDropdown)
 
 router.route("/:id")
-  .get(getTeacherById)
-  .put(updateTeacher)
-  .delete(deleteTeacher)
+  .get(authenticateAdmin, getTeacherById)
+  .put(authenticateAdmin, updateTeacher)
+  .delete(authenticateAdmin, deleteTeacher)
 
 router.route("/")
-  .get(getAllTeachers)
-  .post(createTeacher)
+  .get(authenticateAdmin, getAllTeachers)
+  .post(authenticateAdmin, createTeacher)
 
 export default router;

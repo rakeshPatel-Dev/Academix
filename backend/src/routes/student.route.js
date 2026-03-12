@@ -11,23 +11,24 @@ import {
   getStudentsByShift,
   getStudentStats
 } from "../controllers/student.controller.js";
+import { authenticateAdmin } from "../middlewares/auth.middleware.js";
 
 const router = express.Router();
 
 // Public routes
-router.get("/all", getAllStudentsForDropdown); // For dropdowns
-router.get("/search", searchStudents);
-router.get("/stats/overview", getStudentStats);
-router.get("/shift/:shift", getStudentsByShift);
+router.get("/all", authenticateAdmin, getAllStudentsForDropdown); // For dropdowns
+router.get("/search", authenticateAdmin, searchStudents);
+router.get("/stats/overview", authenticateAdmin, getStudentStats);
+router.get("/shift/:shift", authenticateAdmin, getStudentsByShift);
 
 // CRUD routes
 router.route("/")
-  .get(getAllStudents)
-  .post(createStudent);
+  .get(authenticateAdmin, getAllStudents)
+  .post(authenticateAdmin, createStudent);
 
 router.route("/:id")
-  .get(getStudentById)
-  .put(updateStudent)
-  .delete(deleteStudent);
+  .get(authenticateAdmin, getStudentById)
+  .put(authenticateAdmin, updateStudent)
+  .delete(authenticateAdmin, deleteStudent);
 
 export default router;

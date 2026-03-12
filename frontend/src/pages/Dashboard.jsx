@@ -1,5 +1,5 @@
 // pages/Dashboard.jsx
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
   BookOpen,
   Users,
@@ -26,51 +26,79 @@ const Dashboard = () => {
   const navigate = useNavigate();
 
   // Define API URLs for the custom hook
-  const apiUrls = {
+  const apiUrls = useMemo(() => ({
     teachers: `${API_URL}/teachers`,
     students: `${API_URL}/students`,
     courses: `${API_URL}/courses`
-  };
+  }), []); // Empty dependency array since API_URL is constant
 
   // Use the custom hook
   const { data, loading, error } = useFetchMultipleApis(apiUrls);
 
-  // Filter and extract data properly
-  const teachersData = data.find(item => item.name === 'teachers');
-  const studentsData = data.find(item => item.name === 'students');
-  const coursesData = data.find(item => item.name === 'courses');
+  // Memoize the filtered data to prevent recalculations
+  const { teachers, students, courses } = useMemo(() => {
+    // Filter and extract data properly
+    const teachersData = data.find(item => item.name === 'teachers');
+    const studentsData = data.find(item => item.name === 'students');
+    const coursesData = data.find(item => item.name === 'courses');
 
-  // Get the actual data arrays
-  const teachers = teachersData?.data || [];
-  const students = studentsData?.data || [];
-  const courses = coursesData?.data || [];
+    return {
+      teachers: teachersData?.data || [],
+      students: studentsData?.data || [],
+      courses: coursesData?.data || []
+    };
+  }, [data]); // Only recalculate when data changes
 
-  // Calculate statistics
-  const teacherCount = teachers.length;
-  const studentCount = students.length;
-  const courseCount = courses.length;
+  // Memoize statistics calculations
+  const stats = useMemo(() => {
+    // Calculate statistics
+    const teacherCount = teachers.length;
+    const studentCount = students.length;
+    const courseCount = courses.length;
 
-  // Student shift distribution
-  const morningStudents = students.filter(s => s.shift?.toLowerCase() === 'morning').length;
-  const eveningStudents = students.filter(s => s.shift?.toLowerCase() === 'evening').length;
+    // Student shift distribution
+    const morningStudents = students.filter(s => s.shift?.toLowerCase() === 'morning').length;
+    const eveningStudents = students.filter(s => s.shift?.toLowerCase() === 'evening').length;
 
-  // Teacher post distribution
-  const professors = teachers.filter(t => t.post?.toLowerCase() === 'professor').length;
-  const associateProfessors = teachers.filter(t =>
-    t.post?.toLowerCase() === 'associate professor' || t.post?.toLowerCase() === 'associate'
-  ).length;
-  const assistantProfessors = teachers.filter(t =>
-    t.post?.toLowerCase() === 'assistant professor' || t.post?.toLowerCase() === 'assistant'
-  ).length;
+    // Teacher post distribution
+    const professors = teachers.filter(t => t.post?.toLowerCase() === 'professor').length;
+    const associateProfessors = teachers.filter(t =>
+      t.post?.toLowerCase() === 'associate professor' || t.post?.toLowerCase() === 'associate'
+    ).length;
+    const assistantProfessors = teachers.filter(t =>
+      t.post?.toLowerCase() === 'assistant professor' || t.post?.toLowerCase() === 'assistant'
+    ).length;
 
+    // Course status
+    const coursesWithTeacher = courses.filter(c => c.teacher && c.teacher.length > 0).length || 0;
+    const coursesWithoutTeacher = courses.filter(c => !c.teacher || c.teacher.length === 0).length || 0;
 
-  // Course status
-  const coursesWithTeacher = courses.filter(c => c.teacher && c.teacher.length > 0).length || 0;
-  const coursesWithoutTeacher = courses.filter(c => !c.teacher || c.teacher.length === 0).length || 0;
+    // Calculate percentages
+    const morningPercentage = studentCount ? Math.round((morningStudents / studentCount) * 100) : 0;
+    const eveningPercentage = studentCount ? Math.round((eveningStudents / studentCount) * 100) : 0;
 
-  // Calculate percentages
-  const morningPercentage = studentCount ? Math.round((morningStudents / studentCount) * 100) : 0;
-  const eveningPercentage = studentCount ? Math.round((eveningStudents / studentCount) * 100) : 0;
+    return {
+      teacherCount,
+      studentCount,
+      courseCount,
+      morningStudents,
+      eveningStudents,
+      professors,
+      associateProfessors,
+      assistantProfessors,
+      coursesWithTeacher,
+      coursesWithoutTeacher,
+      morningPercentage,
+      eveningPercentage
+    };
+  }, [teachers, students, courses]);
+
+  // Memoize recent items to prevent unnecessary recalculations
+  const recentItems = useMemo(() => ({
+    recentStudents: students.slice(0, 3),
+    recentTeachers: teachers.slice(0, 3),
+    recentCourses: courses.slice(0, 3)
+  }), [students, teachers, courses]);
 
   if (loading) {
     return (
@@ -142,7 +170,7 @@ const Dashboard = () => {
                     </svg>
                   </div>
                 </div>
-                <p className="text-black text-xl sm:text-2xl font-bold tracking-tight">{studentCount}</p>
+                <p className="text-black text-xl sm:text-2xl font-bold tracking-tight">{stats.studentCount}</p>
                 <div className="mt-1 sm:mt-2 h-0.5 w-6 sm:w-8 bg-gradient-to-r from-blue-500 to-transparent rounded-full" />
               </div>
             </div>
@@ -162,7 +190,7 @@ const Dashboard = () => {
                     </svg>
                   </div>
                 </div>
-                <p className="text-black text-xl sm:text-2xl font-bold tracking-tight">{teacherCount}</p>
+                <p className="text-black text-xl sm:text-2xl font-bold tracking-tight">{stats.teacherCount}</p>
                 <div className="mt-1 sm:mt-2 h-0.5 w-6 sm:w-8 bg-gradient-to-r from-violet-500 to-transparent rounded-full" />
               </div>
             </div>
@@ -182,7 +210,7 @@ const Dashboard = () => {
                     </svg>
                   </div>
                 </div>
-                <p className="text-black text-xl sm:text-2xl font-bold tracking-tight">{courseCount}</p>
+                <p className="text-black text-xl sm:text-2xl font-bold tracking-tight">{stats.courseCount}</p>
                 <div className="mt-1 sm:mt-2 h-0.5 w-6 sm:w-8 bg-gradient-to-r from-emerald-500 to-transparent rounded-full" />
               </div>
             </div>
@@ -205,7 +233,7 @@ const Dashboard = () => {
               <TrendingUp size={20} className="text-white/70" />
             </div>
 
-            <h3 className="text-4xl font-bold text-white mb-1">{studentCount}</h3>
+            <h3 className="text-4xl font-bold text-white mb-1">{stats.studentCount}</h3>
             <p className="text-white/80 text-sm mb-4">Total Students</p>
 
             {/* Shift Distribution */}
@@ -215,12 +243,12 @@ const Dashboard = () => {
                   <span className="flex items-center gap-1">
                     <Sun size={12} /> Morning
                   </span>
-                  <span>{morningStudents} ({morningPercentage}%)</span>
+                  <span>{stats.morningStudents} ({stats.morningPercentage}%)</span>
                 </div>
                 <div className="h-1.5 bg-white/20 rounded-full overflow-hidden">
                   <div
                     className="h-full bg-yellow-300 rounded-full transition-all duration-500"
-                    style={{ width: `${morningPercentage}%` }}
+                    style={{ width: `${stats.morningPercentage}%` }}
                   ></div>
                 </div>
               </div>
@@ -230,12 +258,12 @@ const Dashboard = () => {
                   <span className="flex items-center gap-1">
                     <Moon size={12} /> Evening
                   </span>
-                  <span>{eveningStudents} ({eveningPercentage}%)</span>
+                  <span>{stats.eveningStudents} ({stats.eveningPercentage}%)</span>
                 </div>
                 <div className="h-1.5 bg-white/20 rounded-full overflow-hidden">
                   <div
                     className="h-full bg-indigo-300 rounded-full transition-all duration-500"
-                    style={{ width: `${eveningPercentage}%` }}
+                    style={{ width: `${stats.eveningPercentage}%` }}
                   ></div>
                 </div>
               </div>
@@ -263,24 +291,24 @@ const Dashboard = () => {
               <Award size={20} className="text-white/70" />
             </div>
 
-            <h3 className="text-4xl font-bold text-white mb-1">{teacherCount}</h3>
+            <h3 className="text-4xl font-bold text-white mb-1">{stats.teacherCount}</h3>
             <p className="text-white/80 text-sm mb-4">Total Teachers</p>
 
             {/* Post Distribution */}
             <div className="grid grid-cols-3 gap-2 mb-4">
               <div className="bg-white/10 rounded-lg p-2 text-center">
                 <UserCheck size={16} className="mx-auto mb-1 text-yellow-300" />
-                <p className="text-white text-xs font-bold">{professors}</p>
+                <p className="text-white text-xs font-bold">{stats.professors}</p>
                 <p className="text-white/70 text-[10px]">Professors</p>
               </div>
               <div className="bg-white/10 rounded-lg p-2 text-center">
                 <UserPlus size={16} className="mx-auto mb-1 text-blue-300" />
-                <p className="text-white text-xs font-bold">{associateProfessors}</p>
+                <p className="text-white text-xs font-bold">{stats.associateProfessors}</p>
                 <p className="text-white/70 text-[10px]">Associate</p>
               </div>
               <div className="bg-white/10 rounded-lg p-2 text-center">
                 <UserPlus size={16} className="mx-auto mb-1 text-green-300" />
-                <p className="text-white text-xs font-bold">{assistantProfessors}</p>
+                <p className="text-white text-xs font-bold">{stats.assistantProfessors}</p>
                 <p className="text-white/70 text-[10px]">Assistant</p>
               </div>
             </div>
@@ -307,27 +335,27 @@ const Dashboard = () => {
               <Clock size={20} className="text-white/70" />
             </div>
 
-            <h3 className="text-4xl font-bold text-white mb-1">{courseCount}</h3>
+            <h3 className="text-4xl font-bold text-white mb-1">{stats.courseCount}</h3>
             <p className="text-white/80 text-sm mb-4">Total Courses</p>
 
             {/* Course Status */}
             <div className="space-y-2 mb-4">
               <div className="flex items-center justify-between text-white/90 text-xs">
                 <span className=' flex items-center gap-1'> <UserRoundCheck size={16} /> Courses with Teachers</span>
-                <span className="font-bold">{coursesWithTeacher}</span>
+                <span className="font-bold">{stats.coursesWithTeacher}</span>
               </div>
               <div className="flex items-center justify-between text-white/90 text-xs">
                 <span className=' flex items-center gap-1'><UserRoundX size={16} /> Courses without Teachers</span>
-                <span className="font-bold">{coursesWithoutTeacher}</span>
+                <span className="font-bold">{stats.coursesWithoutTeacher}</span>
               </div>
             </div>
 
             {/* Status Bar */}
-            {courseCount > 0 && (
+            {stats.courseCount > 0 && (
               <div className="h-1.5 bg-white/20 rounded-full overflow-hidden mb-4">
                 <div
                   className="h-full bg-green-300 rounded-full transition-all duration-500"
-                  style={{ width: `${(coursesWithTeacher / courseCount) * 100}%` }}
+                  style={{ width: `${(stats.coursesWithTeacher / stats.courseCount) * 100}%` }}
                 ></div>
               </div>
             )}
@@ -351,8 +379,8 @@ const Dashboard = () => {
             Recent Students
           </h3>
           <div className="space-y-3">
-            {students.slice(0, 3).map((student, index) => (
-              <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded-xl">
+            {recentItems.recentStudents.map((student, index) => (
+              <div key={student._id || index} className="flex items-center justify-between p-2 bg-gray-50 rounded-xl">
                 <div className=' flex items-center gap-2'>
                   <img src={student.avatar} alt={student.name} className="w-10 h-10 rounded-full object-cover" />
                   <div>
@@ -378,8 +406,8 @@ const Dashboard = () => {
             Recent Teachers
           </h3>
           <div className="space-y-3">
-            {teachers.slice(0, 3).map((teacher, index) => (
-              <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded-xl">
+            {recentItems.recentTeachers.map((teacher, index) => (
+              <div key={teacher._id || index} className="flex items-center justify-between p-2 bg-gray-50 rounded-xl">
                 <div className=' flex items-center gap-2'>
                   <img src={teacher.avatar} alt={teacher.name} className="w-10 h-10 rounded-full object-cover" />
                   <div>
@@ -405,9 +433,8 @@ const Dashboard = () => {
             Recent Courses
           </h3>
           <div className="space-y-3">
-            {courses.slice(0, 3).map((course, index) => (
-              <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded-xl">
-
+            {recentItems.recentCourses.map((course, index) => (
+              <div key={course._id || index} className="flex items-center justify-between p-2 bg-gray-50 rounded-xl">
                 <div className=' flex items-center gap-2'>
                   <img src={course.imageURL} alt={course.title} className="w-10 h-10 rounded-full object-cover" />
                   <div>
