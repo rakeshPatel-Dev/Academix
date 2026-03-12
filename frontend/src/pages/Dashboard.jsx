@@ -49,6 +49,7 @@ const Dashboard = () => {
     };
   }, [data]); // Only recalculate when data changes
 
+
   // Memoize statistics calculations
   const stats = useMemo(() => {
     // Calculate statistics

@@ -14,9 +14,6 @@ const useFetchMultipleApis = (urls) => {
       // Don't fetch if not authenticated
       if (!isAuthenticated) {
         setLoading(false);
-        setData([]);
-        setTotals({});
-        setError(null);
         return;
       }
 
@@ -48,10 +45,10 @@ const useFetchMultipleApis = (urls) => {
               // Extract total based on your API response structure
               // Different possible response structures
               let total = 0;
-              if (typeof json.total === 'number') total = json.total;
-              else if (typeof json.count === 'number') total = json.count;
-              else if (typeof json.data?.total === 'number') total = json.data.total;
-              else if (json.data?.length != null) total = json.data.length;
+              if (json.total) total = json.total;
+              else if (json.count) total = json.count;
+              else if (json.data?.total) total = json.data.total;
+              else if (json.data?.length) total = json.data.length;
               else if (Array.isArray(json)) total = json.length;
 
               return {
@@ -84,7 +81,7 @@ const useFetchMultipleApis = (urls) => {
         // Store full API responses
         const allData = successfulResponses.map(({ name, apiData }) => ({
           name,
-          data: apiData
+          ...apiData,
         }));
 
         setTotals(newTotals);
