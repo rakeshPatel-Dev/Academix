@@ -12,7 +12,8 @@ import {
   ChevronRight,
   User,
   X,
-  Users2
+  Users2,
+  Book
 } from 'lucide-react';
 import axios from "axios";
 import toast from 'react-hot-toast';
@@ -198,6 +199,27 @@ const Courses = () => {
     );
   }
 
+  const cardData = [
+    {
+      title: "Total Courses",
+      value: totalCourses,
+      icon: <BookOpen size={20} />,
+      desc: "Total number of courses",
+    },
+    {
+      title: "Total Students",
+      value: totalStudents,
+      icon: <Users size={20} />,
+      desc: "Total number of students",
+    },
+    {
+      title: "Unique Teachers",
+      value: uniqueTeachers,
+      icon: <User size={20} />,
+      desc: "Number of unique teachers",
+    },
+  ]
+
   return (
     <div className="space-y-6 max-w-7xl mx-auto px-4 py-6">
       {/* Header with title and add button */}
@@ -216,37 +238,33 @@ const Courses = () => {
       </div>
 
       {/* Stats summary - Hide during search */}
-      {!searchMode && (
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-            <div className="flex items-center justify-between mb-2">
-              <p className="text-sm text-gray-500">Total Courses</p>
-              <BookOpen size={20} className="text-blue-500" />
-            </div>
-            <p className="text-3xl font-bold text-gray-800">{totalCourses}</p>
-            <p className="text-xs text-gray-400 mt-2">Showing {courses.length} on this page</p>
-          </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 mt-4 sm:mt-6">
 
-          <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-            <div className="flex items-center justify-between mb-2">
-              <p className="text-sm text-gray-500">Total Students</p>
-              <Users size={20} className="text-green-500" />
+        {!searchMode && (
+          cardData.map((card, index) => (
+            <div key={index} className="group relative bg-linear-to-br from-white/20 to-white/5 backdrop-blur-md border border-white/30 shadow-[0_8px_32px_rgba(0,0,0,0.12)] rounded-xl sm:rounded-2xl p-3 sm:p-4 overflow-hidden transition-all duration-300 hover:shadow-[0_12px_40px_rgba(0,0,0,0.2)] hover:-translate-y-1">
+              {/* Glow accent */}
+              <div className="absolute -top-4 -right-4 w-16 sm:w-20 h-16 sm:h-20 bg-blue-400/20 rounded-full blur-2xl group-hover:bg-blue-400/30 transition-all duration-300" />
+              <div className="relative z-10">
+                <div className="flex items-center justify-between mb-2 sm:mb-3">
+                  <p className="text-black/50 text-[10px] sm:text-xs font-medium uppercase tracking-widest">
+                    {card.title}
+                  </p>
+                  <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-1 sm:p-1.5">
+                    {card.icon}
+                  </div>
+                </div>
+                <p className="text-black text-xl sm:text-2xl font-bold tracking-tight">{card.value}</p>
+                <p className=' text-black/50 text-[10px] sm:text-xs'>
+                  {card.desc}
+                </p>
+                <div className="mt-1 sm:mt-2 h-0.5 w-6 sm:w-8 bg-linear-to-r from-blue-500 to-transparent rounded-full" />
+              </div>
             </div>
-            <p className="text-3xl font-bold text-blue-600">{totalStudents}</p>
-            <p className="text-xs text-gray-400 mt-2">Across all courses</p>
-          </div>
+          ))
+        )}
+      </div>
 
-          {/* ✅ UPDATED: Teachers stat card */}
-          <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-            <div className="flex items-center justify-between mb-2">
-              <p className="text-sm text-gray-500">Total Teachers</p>
-              <Users2 size={20} className="text-purple-500" />
-            </div>
-            <p className="text-3xl font-bold text-purple-600">{uniqueTeachers}</p>
-            <p className="text-xs text-gray-400 mt-2">Unique teachers assigned</p>
-          </div>
-        </div>
-      )}
 
       {/* Search bar */}
       <div className="relative">

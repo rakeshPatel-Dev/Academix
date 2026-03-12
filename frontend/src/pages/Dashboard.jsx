@@ -353,9 +353,12 @@ const Dashboard = () => {
           <div className="space-y-3">
             {students.slice(0, 3).map((student, index) => (
               <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded-xl">
-                <div>
-                  <p className="text-sm font-medium text-gray-700">{student.name}</p>
-                  <p className="text-xs text-gray-500">{student.shift} Shift</p>
+                <div className=' flex items-center gap-2'>
+                  <img src={student.avatar} alt={student.name} className="w-10 h-10 rounded-full object-cover" />
+                  <div>
+                    <p className="text-sm font-medium text-gray-700">{student.name}</p>
+                    <p className="text-xs text-gray-500">{student.email} </p>
+                  </div>
                 </div>
                 <span className="text-xs px-2 py-1 bg-green-100 text-green-600 rounded-full">
                   {student.shift}
@@ -377,9 +380,12 @@ const Dashboard = () => {
           <div className="space-y-3">
             {teachers.slice(0, 3).map((teacher, index) => (
               <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded-xl">
-                <div>
-                  <p className="text-sm font-medium text-gray-700">{teacher.name}</p>
-                  <p className="text-xs text-gray-500">{teacher.post}</p>
+                <div className=' flex items-center gap-2'>
+                  <img src={teacher.avatar} alt={teacher.name} className="w-10 h-10 rounded-full object-cover" />
+                  <div>
+                    <p className="text-sm font-medium text-gray-700">{teacher.name}</p>
+                    <p className="text-xs text-gray-500">{teacher.email}</p>
+                  </div>
                 </div>
                 <span className="text-xs px-2 py-1 bg-purple-100 text-purple-600 rounded-full">
                   {teacher.post?.split(' ')[0]}
@@ -401,9 +407,13 @@ const Dashboard = () => {
           <div className="space-y-3">
             {courses.slice(0, 3).map((course, index) => (
               <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded-xl">
-                <div>
-                  <p className="text-sm font-medium text-gray-700">{course.title}</p>
-                  <p className="text-xs truncate w-30 sm:w-60 text-gray-500">{course.description}</p>
+
+                <div className=' flex items-center gap-2'>
+                  <img src={course.imageURL} alt={course.title} className="w-10 h-10 rounded-full object-cover" />
+                  <div>
+                    <p className="text-sm font-medium text-gray-700">{course.title}</p>
+                    <p className="text-xs truncate w-30 sm:w-40 text-gray-500">{course.description}</p>
+                  </div>
                 </div>
                 <span className={`text-xs px-2 py-1 rounded-full ${course.teacher?.length > 0
                   ? 'bg-green-100 text-green-600'

@@ -6,17 +6,16 @@ import {
   Mail,
   Phone,
   MapPin,
-  Briefcase,
   BookOpen,
   Edit,
   Trash2,
   Plus,
   Search,
   ChevronRight,
-  User,
   Calendar,
   AlertCircle,
-  Users
+  Users,
+  UserCog
 } from 'lucide-react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
@@ -56,8 +55,6 @@ const Teachers = () => {
   const fetchCourses = async () => {
     try {
       const response = await axios.get(`${API_URL}/courses`);
-      console.log('Courses API Response:', response.data);
-
       const coursesData = response.data.data || response.data.courses || response.data;
       setCourses(Array.isArray(coursesData) ? coursesData : []);
     } catch (error) {
@@ -196,6 +193,34 @@ const Teachers = () => {
     );
   }
 
+  const cardData = [
+    {
+      title: 'Total Teachers',
+      value: stats.total,
+      icon: <Users size={20} />,
+      desc: 'Total number of teachers',
+    },
+    {
+      title: 'Professors',
+      value: stats.professors,
+      icon: <UserCog size={20} />,
+      desc: 'Number of professors',
+    },
+    {
+      title: 'Associate Professors',
+      value: stats.associate,
+      icon: <UserCog size={20} />,
+      desc: 'Number of associate professors',
+    },
+    {
+      title: 'Assistant Professors',
+      value: stats.assistant,
+      icon: <UserCog size={20} />,
+      desc: 'Number of assistant professors',
+    },
+
+  ]
+
   return (
     <div className="space-y-6 max-w-7xl mx-auto px-4 py-6">
       {/* Header with title and add button */}
@@ -214,27 +239,28 @@ const Teachers = () => {
       </div>
 
       {/* Stats summary */}
-      <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
-        <div className="bg-white rounded-xl shadow-sm p-5 border border-gray-100">
-          <p className="text-xs text-gray-500 mb-1">Total Teachers</p>
-          <p className="text-2xl font-bold text-gray-800">{stats.total}</p>
-        </div>
-        <div className="bg-white rounded-xl shadow-sm p-5 border border-gray-100">
-          <p className="text-xs text-gray-500 mb-1">Professors</p>
-          <p className="text-2xl font-bold text-purple-600">{stats.professors}</p>
-        </div>
-        <div className="bg-white rounded-xl shadow-sm p-5 border border-gray-100">
-          <p className="text-xs text-gray-500 mb-1">Associate</p>
-          <p className="text-2xl font-bold text-blue-600">{stats.associate}</p>
-        </div>
-        <div className="bg-white rounded-xl shadow-sm p-5 border border-gray-100">
-          <p className="text-xs text-gray-500 mb-1">Assistant</p>
-          <p className="text-2xl font-bold text-green-600">{stats.assistant}</p>
-        </div>
-        <div className="bg-white rounded-xl shadow-sm p-5 border border-gray-100">
-          <p className="text-xs text-gray-500 mb-1">Unassigned</p>
-          <p className="text-2xl font-bold text-amber-600">{stats.unassigned}</p>
-        </div>
+      <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 mt-4 sm:mt-6">
+        {cardData.map((card, index) => (
+          <div key={index} className="group relative bg-linear-to-br from-white/20 to-white/5 backdrop-blur-md border border-white/30 shadow-[0_8px_32px_rgba(0,0,0,0.12)] rounded-xl sm:rounded-2xl p-3 sm:p-4 overflow-hidden transition-all duration-300 hover:shadow-[0_12px_40px_rgba(0,0,0,0.2)] hover:-translate-y-1">
+            {/* Glow accent */}
+            <div className="absolute -top-4 -right-4 w-16 sm:w-20 h-16 sm:h-20 bg-blue-400/20 rounded-full blur-2xl group-hover:bg-blue-400/30 transition-all duration-300" />
+            <div className="relative z-10">
+              <div className="flex items-center justify-between mb-2 sm:mb-3">
+                <p className="text-black/50 text-[10px] sm:text-xs font-medium uppercase tracking-widest">
+                  {card.title}
+                </p>
+                <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-1 sm:p-1.5">
+                  {card.icon}
+                </div>
+              </div>
+              <p className="text-black text-xl sm:text-2xl font-bold tracking-tight">{card.value}</p>
+              <p className=' text-black/50 text-[10px] sm:text-xs'>
+                {card.desc}
+              </p>
+              <div className="mt-1 sm:mt-2 h-0.5 w-6 sm:w-8 bg-linear-to-r from-blue-500 to-transparent rounded-full" />
+            </div>
+          </div>
+        ))}
       </div>
 
       {/* Search bar */}
