@@ -16,10 +16,15 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const res = await login(formData.email, formData.password);
-    if (res.success) {
-      toast.success('Login successful! Redirecting to dashboard...');
-      navigate('/dashboard');
+    try {
+      const res = await login(formData.email, formData.password);
+      if (res?.success) {
+        toast.success('Login successful! Redirecting to dashboard...');
+        navigate('/dashboard');
+      }
+    } catch (err) {
+      // useAuth should handle error state, but log for debugging
+      console.error('Login failed:', err);
     }
   };
 

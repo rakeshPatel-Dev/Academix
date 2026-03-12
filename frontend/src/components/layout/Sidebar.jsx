@@ -58,8 +58,8 @@ const Sidebar = () => {
     try {
       await logout();
       toast.success('Logout successful!');
-    } catch (error) {
-      toast.error('Logout failed. Please try again.');
+    } catch (logoutError) {
+      toast.error('Logout failed. Please try again.', logoutError);
     }
   };
 
@@ -287,7 +287,7 @@ const Sidebar = () => {
                   className="w-8 h-8 rounded-full object-cover"
                   onError={(e) => {
                     e.target.onerror = null;
-                    e.target.src = `https://ui-avatars.com/api/?name=${user.name}&background=3b82f6&color=fff`;
+                    e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=3b82f6&color=fff`
                   }}
                 />
               ) : (

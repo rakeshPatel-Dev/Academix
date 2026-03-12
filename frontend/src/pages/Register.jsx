@@ -66,6 +66,8 @@ const Register = () => {
         setTimeout(() => {
           navigate('/login');
         }, 2000);
+      } else {
+        toast.error(res.message);
       }
     } catch (err) {
       toast.error(err.message);

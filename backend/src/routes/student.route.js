@@ -15,7 +15,7 @@ import { authenticateAdmin } from "../middlewares/auth.middleware.js";
 
 const router = express.Router();
 
-// Public routes
+// Admin-protected routes 
 router.get("/all", authenticateAdmin, getAllStudentsForDropdown); // For dropdowns
 router.get("/search", authenticateAdmin, searchStudents);
 router.get("/stats/overview", authenticateAdmin, getStudentStats);

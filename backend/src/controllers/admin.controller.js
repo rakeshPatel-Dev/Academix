@@ -13,7 +13,7 @@ export const registerAdmin = async (req, res) => {
     if (!email || !password || !name || !avatar || !confirmPassword) {
       return res.status(400).json({
         success: false,
-        message: "Name, email, password and image URL, and confirm password are required.",
+        message: "Name, email, password and avatar, and confirm password are required.",
       });
     }
 
@@ -99,7 +99,7 @@ export const loginAdmin = async (req, res) => {
     if (!admin) {
       return res.status(401).json({
         success: false,
-        message: "User with this email does not exist.",
+        message: "Invalid email or password.",
       });
     }
 
@@ -238,16 +238,21 @@ export const updateCurrentAdminProfile = async (req, res) => {
         message: "Please enter a valid email address"
       });
     }
+    // Build update object with only provided fields
+    const updateData = {
+      name,
+      email,
+      updatedAt: Date.now()
+    };
+
+    if (avatar !== undefined) {
+      updateData.avatar = avatar;
+    }
 
     // Update admin
     const updatedAdmin = await Admin.findByIdAndUpdate(
       adminId,
-      {
-        name,
-        email,
-        avatar,
-        updatedAt: Date.now()
-      },
+      updateData,
       { new: true, runValidators: true }
     ).select('-password');
 

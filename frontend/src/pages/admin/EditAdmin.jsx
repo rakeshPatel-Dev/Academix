@@ -26,6 +26,9 @@ const EditProfileModal = ({ isOpen, onClose, user, onUpdate }) => {
         avatar: user.avatar || ''
       });
       setImagePreview(user.avatar || '');
+      setImageError(false);
+      setError('');
+      setSuccess('');
     }
   }, [user]);
 
@@ -49,8 +52,8 @@ const EditProfileModal = ({ isOpen, onClose, user, onUpdate }) => {
 
   const isValidUrl = (string) => {
     try {
-      new URL(string);
-      return true;
+      const url = new URL(string);
+      return ['http:', 'https:'].includes(url.protocol);
     } catch (_) {
       return false;
     }
@@ -97,9 +100,11 @@ const EditProfileModal = ({ isOpen, onClose, user, onUpdate }) => {
       if (response.data.success) {
         setSuccess('Profile updated successfully!');
         setTimeout(() => {
-          onUpdate(formData);
+          onUpdate(response.data.user || response.data.data || formData);
           onClose();
         }, 1500);
+      } else {
+        setError(response.data.message || 'Failed to update profile');
       }
     } catch (error) {
       setError(error.response?.data?.message || 'Failed to update profile');

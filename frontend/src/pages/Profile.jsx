@@ -20,12 +20,10 @@ const AdminProfile = () => {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [imageError, setImageError] = useState(false);
-  const [currentUser, setCurrentUser] = useState(null);
+  const [currentUser, setCurrentUser] = useState(user);
 
   useEffect(() => {
-    if (user) {
-      setCurrentUser(user);
-    }
+    setCurrentUser(user);
   }, [user]);
 
   const handleImageError = () => {
@@ -56,7 +54,7 @@ const AdminProfile = () => {
     );
   }
 
-  if (!currentUser) {
+  if (!currentUser && !user) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">

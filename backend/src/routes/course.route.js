@@ -16,7 +16,7 @@ const router = express.Router();
 router.get("/search", authenticateAdmin, searchCourses);
 
 router.get("/stats", authenticateAdmin, getCourseStats);
-router.get("/all", authenticateAdmin, getAllCoursesForDropdown)
+router.get("/all", authenticateAdmin, getAllCoursesForDropdown);
 
 router.route("/:id")
   .put(authenticateAdmin, updateCourse)
