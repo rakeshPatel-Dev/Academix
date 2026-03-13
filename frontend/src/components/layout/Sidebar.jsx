@@ -18,8 +18,7 @@ import {
 import useFetchMultipleApis from '../../hooks/useDataLength';
 import toast from 'react-hot-toast';
 
-const Sidebar = () => {
-  const [collapsed, setCollapsed] = useState(false);
+const Sidebar = ({ collapsed, setCollapsed }) => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const location = useLocation();
   const { user, logout, isAuthenticated } = useAuth();
@@ -146,30 +145,33 @@ const Sidebar = () => {
 
   return (
     <>
-      {/* Mobile menu button */}
+      {/* Mobile Menu Button */}
       <button
         onClick={toggleMobile}
-        className="lg:hidden fixed top-4 left-4 z-50 p-2 bg-white rounded-lg shadow-md hover:bg-gray-50"
+        className="lg:hidden fixed top-4 left-4 z-[60] p-2 bg-white rounded-lg shadow-md"
       >
         {mobileOpen ? <X size={24} /> : <Menu size={24} />}
       </button>
 
-      {/* Overlay for mobile */}
+      {/* Mobile Overlay */}
       {mobileOpen && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
           onClick={toggleMobile}
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
         />
       )}
 
       {/* Sidebar */}
       <aside
         className={`
-           top-0 left-0 h-full bg-white shadow-xl z-50
-          transition-all duration-300 ease-in-out
-          ${collapsed ? 'w-20' : 'w-64'}
-          ${mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
-        `}
+      fixed top-0 left-0 h-screen bg-white shadow-xl z-50
+      transition-all duration-300 ease-in-out
+      
+      ${collapsed ? "lg:w-20" : "lg:w-64"}
+      w-64
+      
+      ${mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
+    `}
       >
         {/* Logo Area */}
         <div className={`

@@ -15,7 +15,8 @@ import {
   UserPlus,
   Activity,
   UserRoundCheck,
-  UserRoundX
+  UserRoundX,
+  Zap
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import useFetchMultipleApis from '../hooks/useDataLength';
@@ -372,115 +373,205 @@ const Dashboard = () => {
       </div>
 
       {/* Recent Items Preview */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-5 md:gap-6">
         {/* Recent Students */}
-        <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
-          <h3 className="font-semibold text-gray-700 mb-4 flex items-center gap-2">
-            <Users size={18} className="text-green-500" />
-            Recent Students
+        <div className="group bg-white/80 backdrop-blur-sm rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-all duration-300 p-4 sm:p-5 md:p-6 border border-gray-100/80 hover:border-gray-200">
+          <h3 className="font-semibold text-gray-800 mb-3 sm:mb-4 flex items-center gap-2 text-sm sm:text-base">
+            <div className="p-1.5 sm:p-2 bg-green-50 rounded-lg group-hover:bg-green-100 transition-colors duration-300">
+              <Users size={16} sm:size={18} className="text-green-500" />
+            </div>
+            <span>Recent Students</span>
+            <span className="ml-auto text-xs font-normal text-gray-400 bg-gray-50 px-2 py-1 rounded-full">
+              {recentItems.recentStudents.length} new
+            </span>
           </h3>
-          <div className="space-y-3">
+          <div className="space-y-2 sm:space-y-3">
             {recentItems.recentStudents.map((student, index) => (
-              <div key={student._id || index} className="flex items-center justify-between p-2 bg-gray-50 rounded-xl">
-                <div className=' flex items-center gap-2'>
-                  <img src={student.avatar} alt={student.name} className="w-10 h-10 rounded-full object-cover" />
-                  <div>
-                    <p className="text-sm font-medium text-gray-700">{student.name}</p>
-                    <p className="text-xs text-gray-500">{student.email} </p>
+              <div
+                key={student._id || index}
+                className="flex items-center justify-between p-2 sm:p-2.5 bg-gradient-to-r from-gray-50 to-white rounded-xl hover:from-gray-100 hover:to-gray-50 transition-all duration-200 group/item"
+              >
+                <div className='flex items-center gap-2 sm:gap-3 min-w-0 flex-1'>
+                  <div className="relative flex-shrink-0">
+                    <img
+                      src={student.avatar}
+                      alt={student.name}
+                      className="w-8 h-8 sm:w-10 sm:h-10 rounded-full object-cover ring-2 ring-white shadow-sm group-hover/item:ring-green-100 transition-all duration-200"
+                    />
+                    <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-green-500 rounded-full ring-1 ring-white"></div>
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs sm:text-sm font-medium text-gray-800 truncate">{student.name}</p>
+                    <p className="text-[10px] sm:text-xs text-gray-500 truncate">{student.email}</p>
                   </div>
                 </div>
-                <span className="text-xs px-2 py-1 bg-green-100 text-green-600 rounded-full">
+                <span className="text-[10px] sm:text-xs px-2 sm:px-2.5 py-1 bg-green-50 text-green-600 rounded-full font-medium whitespace-nowrap ml-2 flex-shrink-0">
                   {student.shift}
                 </span>
               </div>
             ))}
-            {students.length === 0 && (
-              <p className="text-sm text-gray-500 text-center py-2">No students found</p>
+            {recentItems.recentStudents.length === 0 && (
+              <div className="flex flex-col items-center justify-center py-6 sm:py-8 text-center">
+                <div className="p-3 bg-gray-50 rounded-full mb-2">
+                  <Users size={20} className="text-gray-400" />
+                </div>
+                <p className="text-xs sm:text-sm text-gray-500">No students found</p>
+                <p className="text-[10px] sm:text-xs text-gray-400 mt-1">New students will appear here</p>
+              </div>
             )}
           </div>
         </div>
 
         {/* Recent Teachers */}
-        <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
-          <h3 className="font-semibold text-gray-700 mb-4 flex items-center gap-2">
-            <GraduationCap size={18} className="text-purple-500" />
-            Recent Teachers
+        <div className="group bg-white/80 backdrop-blur-sm rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-all duration-300 p-4 sm:p-5 md:p-6 border border-gray-100/80 hover:border-gray-200">
+          <h3 className="font-semibold text-gray-800 mb-3 sm:mb-4 flex items-center gap-2 text-sm sm:text-base">
+            <div className="p-1.5 sm:p-2 bg-purple-50 rounded-lg group-hover:bg-purple-100 transition-colors duration-300">
+              <GraduationCap size={16} sm:size={18} className="text-purple-500" />
+            </div>
+            <span>Recent Teachers</span>
+            <span className="ml-auto text-xs font-normal text-gray-400 bg-gray-50 px-2 py-1 rounded-full">
+              {recentItems.recentTeachers.length} new
+            </span>
           </h3>
-          <div className="space-y-3">
+          <div className="space-y-2 sm:space-y-3">
             {recentItems.recentTeachers.map((teacher, index) => (
-              <div key={teacher._id || index} className="flex items-center justify-between p-2 bg-gray-50 rounded-xl">
-                <div className=' flex items-center gap-2'>
-                  <img src={teacher.avatar} alt={teacher.name} className="w-10 h-10 rounded-full object-cover" />
-                  <div>
-                    <p className="text-sm font-medium text-gray-700">{teacher.name}</p>
-                    <p className="text-xs text-gray-500">{teacher.email}</p>
+              <div
+                key={teacher._id || index}
+                className="flex items-center justify-between p-2 sm:p-2.5 bg-gradient-to-r from-gray-50 to-white rounded-xl hover:from-gray-100 hover:to-gray-50 transition-all duration-200 group/item"
+              >
+                <div className='flex items-center gap-2 sm:gap-3 min-w-0 flex-1'>
+                  <div className="relative flex-shrink-0">
+                    <img
+                      src={teacher.avatar}
+                      alt={teacher.name}
+                      className="w-8 h-8 sm:w-10 sm:h-10 rounded-full object-cover ring-2 ring-white shadow-sm group-hover/item:ring-purple-100 transition-all duration-200"
+                    />
+                    <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-purple-500 rounded-full ring-1 ring-white"></div>
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs sm:text-sm font-medium text-gray-800 truncate">{teacher.name}</p>
+                    <p className="text-[10px] sm:text-xs text-gray-500 truncate">{teacher.email}</p>
                   </div>
                 </div>
-                <span className="text-xs px-2 py-1 bg-purple-100 text-purple-600 rounded-full">
-                  {teacher.post?.split(' ')[0]}
+                <span className="text-[10px] sm:text-xs px-2 sm:px-2.5 py-1 bg-purple-50 text-purple-600 rounded-full font-medium whitespace-nowrap ml-2 flex-shrink-0">
+                  {teacher.post?.split(' ')[0] || 'Teacher'}
                 </span>
               </div>
             ))}
-            {teachers.length === 0 && (
-              <p className="text-sm text-gray-500 text-center py-2">No teachers found</p>
+            {recentItems.recentTeachers.length === 0 && (
+              <div className="flex flex-col items-center justify-center py-6 sm:py-8 text-center">
+                <div className="p-3 bg-gray-50 rounded-full mb-2">
+                  <GraduationCap size={20} className="text-gray-400" />
+                </div>
+                <p className="text-xs sm:text-sm text-gray-500">No teachers found</p>
+                <p className="text-[10px] sm:text-xs text-gray-400 mt-1">New teachers will appear here</p>
+              </div>
             )}
           </div>
         </div>
 
         {/* Recent Courses */}
-        <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
-          <h3 className="font-semibold text-gray-700 mb-4 flex items-center gap-2">
-            <BookOpen size={18} className="text-blue-500" />
-            Recent Courses
+        <div className="group bg-white/80 backdrop-blur-sm rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-all duration-300 p-4 sm:p-5 md:p-6 border border-gray-100/80 hover:border-gray-200">
+          <h3 className="font-semibold text-gray-800 mb-3 sm:mb-4 flex items-center gap-2 text-sm sm:text-base">
+            <div className="p-1.5 sm:p-2 bg-blue-50 rounded-lg group-hover:bg-blue-100 transition-colors duration-300">
+              <BookOpen size={16} sm:size={18} className="text-blue-500" />
+            </div>
+            <span>Recent Courses</span>
+            <span className="ml-auto text-xs font-normal text-gray-400 bg-gray-50 px-2 py-1 rounded-full">
+              {recentItems.recentCourses.length} new
+            </span>
           </h3>
-          <div className="space-y-3">
+          <div className="space-y-2 sm:space-y-3">
             {recentItems.recentCourses.map((course, index) => (
-              <div key={course._id || index} className="flex items-center justify-between p-2 bg-gray-50 rounded-xl">
-                <div className=' flex items-center gap-2'>
-                  <img src={course.imageURL} alt={course.title} className="w-10 h-10 rounded-full object-cover" />
-                  <div>
-                    <p className="text-sm font-medium text-gray-700">{course.title}</p>
-                    <p className="text-xs truncate w-30 sm:w-40 text-gray-500">{course.description}</p>
+              <div
+                key={course._id || index}
+                className="flex items-center justify-between p-2 sm:p-2.5 bg-gradient-to-r from-gray-50 to-white rounded-xl hover:from-gray-100 hover:to-gray-50 transition-all duration-200 group/item"
+              >
+                <div className='flex items-center gap-2 sm:gap-3 min-w-0 flex-1'>
+                  <div className="relative flex-shrink-0">
+                    <img
+                      src={course.imageURL}
+                      alt={course.title}
+                      className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg object-cover ring-2 ring-white shadow-sm group-hover/item:ring-blue-100 transition-all duration-200"
+                    />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs sm:text-sm font-medium text-gray-800 truncate">{course.title}</p>
+                    <p className="text-[10px] sm:text-xs text-gray-500 truncate max-w-[120px] sm:max-w-[150px] md:max-w-[180px]">
+                      {course.description}
+                    </p>
                   </div>
                 </div>
-                <span className={`text-xs px-2 py-1 rounded-full ${course.teacher?.length > 0
-                  ? 'bg-green-100 text-green-600'
+                <span className={`text-[10px] sm:text-xs px-2 sm:px-2.5 py-1 rounded-full font-medium whitespace-nowrap ml-2 flex-shrink-0 ${course.teacher?.length > 0
+                  ? 'bg-green-50 text-green-600'
                   : 'bg-gray-100 text-gray-600'
                   }`}>
-                  {course.teacher?.length > 0 ? course.teacher.length + " Tutor" + (course.teacher.length > 1 ? "s" : "") : "0 Tutors"}
+                  {course.teacher?.length > 0
+                    ? `${course.teacher.length} Tutor${course.teacher.length > 1 ? 's' : ''}`
+                    : 'No tutors'
+                  }
                 </span>
               </div>
             ))}
-            {courses.length === 0 && (
-              <p className="text-sm text-gray-500 text-center py-2">No courses found</p>
+            {recentItems.recentCourses.length === 0 && (
+              <div className="flex flex-col items-center justify-center py-6 sm:py-8 text-center">
+                <div className="p-3 bg-gray-50 rounded-full mb-2">
+                  <BookOpen size={20} className="text-gray-400" />
+                </div>
+                <p className="text-xs sm:text-sm text-gray-500">No courses found</p>
+                <p className="text-[10px] sm:text-xs text-gray-400 mt-1">New courses will appear here</p>
+              </div>
             )}
           </div>
         </div>
       </div>
 
       {/* Quick Actions */}
-      <div className="bg-gradient-to-r from-gray-50 to-white rounded-2xl shadow-lg p-6 border border-gray-100">
-        <h3 className="text-lg font-semibold text-gray-700 mb-4">Quick Actions</h3>
+      <div className="bg-gradient-to-br from-gray-50 via-white to-gray-50 rounded-2xl shadow-xl border border-gray-100 p-8 backdrop-blur-sm">
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h3 className="text-xl font-bold text-gray-900 mb-1">Quick Actions</h3>
+            <p className="text-sm text-gray-500">Manage your platform efficiently</p>
+          </div>
+          <div className="w-12 h-12 bg-gradient-to-br from-blue-100 to-blue-50 rounded-xl flex items-center justify-center">
+            <Zap size={24} className="text-blue-600" />
+          </div>
+        </div>
+
         <div className="flex flex-wrap gap-3">
           <button
             onClick={() => navigate('/courses/new')}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-xl hover:bg-blue-600 transition-colors"
+            className="group flex items-center gap-2 px-5 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl
+                 hover:shadow-lg hover:shadow-blue-500/30 hover:scale-105
+                 active:scale-95
+                 transition-all duration-200 font-medium text-sm
+                 border border-blue-600 hover:border-blue-700"
           >
-            <PlusCircle size={18} />
+            <PlusCircle size={18} className="group-hover:rotate-90 transition-transform duration-300" />
             New Course
           </button>
+
           <button
             onClick={() => navigate('/students/new')}
-            className="flex items-center gap-2 px-4 py-2 bg-green-500 text-white rounded-xl hover:bg-green-600 transition-colors"
+            className="group flex items-center gap-2 px-5 py-3 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl
+                 hover:shadow-lg hover:shadow-green-500/30 hover:scale-105
+                 active:scale-95
+                 transition-all duration-200 font-medium text-sm
+                 border border-green-600 hover:border-green-700"
           >
-            <PlusCircle size={18} />
+            <PlusCircle size={18} className="group-hover:rotate-90 transition-transform duration-300" />
             Add Student
           </button>
+
           <button
             onClick={() => navigate('/teachers/new')}
-            className="flex items-center gap-2 px-4 py-2 bg-purple-500 text-white rounded-xl hover:bg-purple-600 transition-colors"
+            className="group flex items-center gap-2 px-5 py-3 bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-xl
+                 hover:shadow-lg hover:shadow-purple-500/30 hover:scale-105
+                 active:scale-95
+                 transition-all duration-200 font-medium text-sm
+                 border border-purple-600 hover:border-purple-700"
           >
-            <PlusCircle size={18} />
+            <PlusCircle size={18} className="group-hover:rotate-90 transition-transform duration-300" />
             Add Teacher
           </button>
         </div>

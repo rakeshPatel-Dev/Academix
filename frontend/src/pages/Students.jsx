@@ -304,7 +304,7 @@ const Students = () => {
                         <img
                           src={student.avatar || student.image}
                           alt={student.name}
-                          className="w-16 h-16 rounded-full object-cover border-2 border-white shadow-sm"
+                          className="w-24 h-24 rounded-2xl object-cover border-2 border-white shadow-sm"
                           onError={(e) => {
                             e.target.onerror = null;
                             e.target.src = 'https://via.placeholder.com/64/2563eb/ffffff?text=' + (student.name?.charAt(0) || 'S');

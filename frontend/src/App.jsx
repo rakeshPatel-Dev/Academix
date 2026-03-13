@@ -1,5 +1,5 @@
 // App.jsx
-import React from 'react';
+import React, { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation, Navigate } from 'react-router-dom';
 import ProtectedRoute from './components/ProtectedRoute';
 import Sidebar from './components/layout/Sidebar';
@@ -23,14 +23,27 @@ import AdminProfile from './pages/Profile';
 
 // Layout for authenticated pages (with sidebar)
 function AuthenticatedLayout({ children }) {
+  const [collapsed, setCollapsed] = useState(false);
+
   return (
-    <div className="flex h-screen bg-gray-50 overflow-hidden">
-      <Sidebar />
-      <main className="flex-1 overflow-auto">
+    <div className="bg-gray-50 min-h-screen">
+
+      <Sidebar
+        collapsed={collapsed}
+        setCollapsed={setCollapsed}
+      />
+
+      <main
+        className={`
+          transition-all duration-300
+          ${collapsed ? "lg:ml-20" : "lg:ml-64"}
+        `}
+      >
         <div className="p-6">
           {children}
         </div>
       </main>
+
     </div>
   );
 }

@@ -1,6 +1,6 @@
 // components/EditProfileModal.jsx
 import React, { useState, useEffect } from 'react';
-import { User, Mail, Image, X, Loader, AlertCircle, CheckCircle } from 'lucide-react';
+import { User, Mail, Image, X, Loader, AlertCircle, CheckCircle, BrushCleaning } from 'lucide-react';
 import axios from 'axios';
 
 const API_URL = 'http://localhost:3000/api/admins';
@@ -49,6 +49,10 @@ const EditProfileModal = ({ isOpen, onClose, user, onUpdate }) => {
   const handleImageError = () => {
     setImageError(true);
   };
+
+  const removeAvatarUrl = () => {
+    formData.avatar = "";
+  }
 
   const isValidUrl = (string) => {
     try {
@@ -239,10 +243,23 @@ const EditProfileModal = ({ isOpen, onClose, user, onUpdate }) => {
                     type="url"
                     value={formData.avatar}
                     onChange={handleChange}
-                    className="w-full pl-9 pr-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                    className="w-full pl-9 pr-10 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                     placeholder="https://example.com/image.jpg"
                     disabled={loading}
                   />
+                  <button
+                    type="button"
+                    onClick={() => setFormData((prev) => ({ ...prev, avatar: "" }))}
+                    disabled={!formData.avatar || loading}
+                    className="absolute top-1/2 -translate-y-1/2 right-2 p-1.5 rounded-md
+                 bg-red-100 text-red-400
+                 hover:bg-red-500 hover:text-white hover:shadow-md
+                 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-red-100 disabled:hover:text-red-400 disabled:hover:shadow-none
+                 transition-all duration-200 cursor-pointer"
+                    title="Clear image URL"
+                  >
+                    <BrushCleaning size={16} />
+                  </button>
                 </div>
               </div>
 
