@@ -1,144 +1,298 @@
-# Academix - Academic Management System
+# Academix -- Academic Management System
 
 ## Overview
 
-Academix is a full-stack web application for managing academic institutions. It provides role-based access for Admins, Teachers, and Students to handle courses, student enrollments, teacher assignments, and more. Built with modern technologies for scalability and user-friendly interface.
+**Academix** is a full-stack academic management platform designed to
+help institutions manage students, teachers, and courses from a single
+system.
 
-## ✨ Features
+The platform provides **role-based dashboards for administrators,
+teachers, and students**, allowing them to perform their respective
+tasks such as managing courses, assigning teachers, enrolling students,
+and tracking institutional data.
 
-- **Role-based Authentication**: Secure login for Admins, Teachers, Students using JWT.
-- **Dashboard**: Overview with charts and data statistics (students, teachers, courses).
-- **CRUD Operations**:
-  - Manage Admins (create, edit, view profiles)
-  - Manage Students (create, edit, enroll in courses, profiles)
-  - Manage Teachers (create, edit, assign courses, profiles)
-  - Manage Courses (create, edit, assign to teachers/students)
-- **Responsive UI**: TailwindCSS-powered interface with charts (Chart.js), forms (React Hook Form), and notifications (React Hot Toast).
-- **Protected Routes**: Authentication guards for sensitive pages.
-- **MongoDB Integration**: Persistent data storage with Mongoose ODM.
+The system is built with a modern **MERN-style architecture** to ensure
+scalability, maintainability, and a responsive user experience.
 
-## 🛠️ Tech Stack
+------------------------------------------------------------------------
+
+# ✨ Features
+
+### Role-Based Authentication
+
+Secure authentication system using **JWT** and **bcrypt** that supports
+three roles:
+
+-   Admin
+-   Teacher
+-   Student
+
+Each role has **separate permissions and dashboards**.
+
+### Academic Resource Management
+
+The system supports full management of academic entities:
+
+**Admins can** - Create and manage students - Create and manage
+teachers - Create and manage courses - Assign teachers to courses -
+Enroll students into courses
+
+**Teachers can** - View assigned courses - Access student information
+for their courses
+
+**Students can** - View enrolled courses - Access course details
+
+------------------------------------------------------------------------
+
+### Dashboard Analytics
+
+Interactive dashboards provide quick insights into institutional data
+such as:
+
+-   Total students
+-   Total teachers
+-   Total courses
+-   Enrollment distribution
+
+Charts are built using **Chart.js** for visual data representation.
+
+------------------------------------------------------------------------
+
+### Email Notification Service
+
+Academix includes a **dedicated email service layer** responsible for
+sending system emails.
+
+Email notifications are used for events such as:
+
+-   User registration
+-   Account updates
+-   Course assignments
+-   System notifications
+
+The service is implemented using **Nodemailer** and a centralized
+**email service module**, ensuring email logic is separated from
+controllers for better maintainability.
+
+------------------------------------------------------------------------
+
+### Secure Protected Routes
+
+Sensitive routes are protected using:
+
+-   JWT authentication middleware
+-   Role-based authorization checks
+
+This ensures only authorized users can access restricted resources.
+
+------------------------------------------------------------------------
+
+### Responsive User Interface
+
+The frontend is designed using **TailwindCSS** and provides:
+
+-   Fully responsive layout
+-   Interactive forms
+-   Toast notifications
+-   Dynamic charts
+
+------------------------------------------------------------------------
+
+# 🛠 Tech Stack
+
+## Backend
+
+-   **Node.js**
+-   **Express.js**
+-   **MongoDB** with Mongoose
+-   **JWT Authentication**
+-   **bcrypt** for password hashing
+-   **Nodemailer** for email services
+-   **dotenv** for environment configuration
+-   **cors**
+-   **cookie-parser**
+
+Package manager: **pnpm**
+
+------------------------------------------------------------------------
+
+## Frontend
+
+-   **React 19**
+-   **Vite**
+-   **TailwindCSS**
+-   **React Router**
+-   **Axios**
+-   **React Hook Form**
+-   **Chart.js**
+-   **React Chartjs 2**
+-   **Lucide React**
+-   **React Hot Toast**
+
+Package manager: **pnpm**
+
+------------------------------------------------------------------------
+
+# 📋 Prerequisites
+
+Before running the project, make sure the following tools are installed:
+
+-   **Node.js (v20 or higher)**
+-   **MongoDB** (local instance or MongoDB Atlas)
+-   **pnpm**
+
+------------------------------------------------------------------------
+
+# 🚀 Installation & Setup
+
+## 1. Clone the Repository
+
+``` bash
+git clone https://github.com/your-username/academix.git
+cd academix
+```
+
+------------------------------------------------------------------------
+
+## 2. Install Dependencies
 
 ### Backend
-- **Node.js / Express.js** (ES Modules)
-- **MongoDB** (via Mongoose)
-- **Authentication**: JWT, bcryptjs
-- **Other**: dotenv, cors, cookie-parser
-- **Package Manager**: pnpm
 
-### Frontend
-- **React 19** with Vite (HMR)
-- **TailwindCSS 4**
-- **React Router 7**
-- **State/Tools**: Axios (API calls), React Hook Form, lodash, Lucide React (icons)
-- **Charts**: Chart.js + react-chartjs-2
-- **Notifications**: react-hot-toast
-- **Package Manager**: pnpm
-
-## 📋 Prerequisites
-
-- Node.js (v20+ recommended)
-- MongoDB (local or cloud like MongoDB Atlas)
-- pnpm (v10+)
-
-## 🚀 Quick Start
-
-### 1. Clone & Install
-
-```bash
-# Backend
+``` bash
 cd backend
 pnpm install
+```
 
-# Frontend
+### Frontend
+
+``` bash
 cd ../frontend
 pnpm install
 ```
 
-### 2. Environment Setup
+------------------------------------------------------------------------
 
-Create `.env` in `backend/`:
+## 3. Environment Configuration
 
-```
-PORT=3000
-MONGO_URI=mongodb://localhost:27017/academix
-JWT_SECRET=your-super-secret-jwt-key-here
-```
+Create a `.env` file inside the **backend** directory.
 
-Update `MONGO_URI` for your MongoDB instance.
+    PORT=3000
+    MONGODB_URI=mongodb://localhost:27017/academix
+    JWT_SECRET=your-super-secret-jwt-key
 
-### 3. Run the Application
+    SMTP_HOST=smtp.gmail.com
+    SMTP_PORT=587
+    SMTP_USER=your-email@gmail.com
+    SMTP_PASS=your-app-password
+    SMTP_FROM="Academic System" <your-email@gmail.com>
+    SMTP_SERVICE=gmail
 
-Open multiple terminals:
+These variables configure:
 
-**Backend:**
-```bash
+-   database connection
+-   authentication secrets
+-   email service credentials
+
+------------------------------------------------------------------------
+
+## 4. Run the Application
+
+Open two terminals.
+
+### Start Backend Server
+
+``` bash
 cd backend
 pnpm dev
 ```
-Server runs on `http://localhost:3000`
 
-**Frontend:**
-```bash
+Backend runs at:
+
+    http://localhost:3000
+
+------------------------------------------------------------------------
+
+### Start Frontend
+
+``` bash
 cd frontend
 pnpm dev
 ```
-App runs on `http://localhost:5173` (proxies API to backend)
 
-### 4. Access the App
+Frontend runs at:
 
-- Open `http://localhost:5173`
-- Register/Login as Admin/Teacher/Student
-- Explore Dashboard, manage resources
+    http://localhost:5173
 
-## 🌐 API Endpoints
+The frontend automatically proxies API requests to the backend.
 
-Base URL: `http://localhost:3000/api`
+------------------------------------------------------------------------
 
-| Method | Endpoint              | Description             | Auth |
-|--------|-----------------------|-------------------------|------|
-| POST   | /auth/register        | Register user           | -    |
-| POST   | /auth/login           | Login user              | -    |
-| GET    | /students             | Get all students        | Yes  |
-| POST   | /students             | Create student          | Yes  |
-| ...    | (See backend/routes)  | Full CRUD for resources | Yes  |
+# 🌐 API Overview
 
-## 📁 Project Structure
+Base URL:
 
-```
-Academix/
-├── backend/          # Express API server
-│   ├── src/
-│   │   ├── models/   # Mongoose schemas
-│   │   ├── routes/   # API routes
-│   │   ├── controllers/
-│   │   └── config/
-├── frontend/         # React + Vite app
-│   ├── src/
-│   │   ├── pages/    # Views (Dashboard, CRUD pages)
-│   │   ├── components/ # Reusable UI
-│   │   └── hooks/    # Custom hooks (auth, data)
-└── README.md         # This file
-```
+    http://localhost:3000/api
 
-## 🧪 Testing
+  Method   Endpoint         Description        Auth
+  -------- ---------------- ------------------ ------
+  POST     /auth/register   Register user      No
+  POST     /auth/login      Login user         No
+  GET      /students        Get all students   Yes
+  POST     /students        Create student     Yes
+  GET      /teachers        Get all teachers   Yes
+  POST     /teachers        Create teacher     Yes
+  GET      /courses         Get all courses    Yes
+  POST     /courses         Create course      Yes
 
-Backend: No tests yet (`pnpm test`).
+All protected routes require **JWT authentication**.
 
-Frontend: ESLint (`pnpm lint`).
+------------------------------------------------------------------------
 
-## 🤝 Contributing
+# 📁 Project Structure
 
-1. Fork the repo
-2. Create feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit changes (`git commit -m 'Add amazing feature'`)
-4. Push (`git push origin feature/amazing-feature`)
-5. Open Pull Request
+    Academix
+    │
+    ├── backend
+    │   └── src
+    │       ├── models
+    │       ├── routes
+    │       ├── controllers
+    │       ├── services      # Email services and business logic
+    │       ├── middleware    # Auth & authorization middleware
+    │       └── config
+    │
+    ├── frontend
+    │   └── src
+    │       ├── pages
+    │       ├── components
+    │       ├── hooks
+    │       ├── services      # API communication layer
+    │       └── utils
+    │
+    └── README.md
 
-## 📄 License
+------------------------------------------------------------------------
 
-ISC License (see `backend/package.json`)
+# 🧪 Development Tools
 
-## 🙌 Acknowledgments
+Frontend code quality is maintained using:
 
-Built with ❤️ using open-source tools. Contributions welcome!
+    pnpm lint
+
+Testing support can be added later using tools like **Jest** or
+**Vitest**.
+
+------------------------------------------------------------------------
+
+# 📄 License
+
+This project is licensed under the **ISC License**.
+
+See `backend/package.json` for details.
+
+------------------------------------------------------------------------
+
+# 🙌 Acknowledgments
+
+This project is built using modern open-source technologies including
+**React, Express, MongoDB, TailwindCSS, and Node.js**.
