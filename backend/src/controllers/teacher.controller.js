@@ -2,6 +2,7 @@
 import Teacher from "../models/teacher.model.js";
 import Course from "../models/course.model.js";
 import Student from "../models/student.model.js";
+import { sendProfileCreatedEmail } from "../service/email.service.js";
 
 // @desc    Get all teachers
 // @route   GET /api/teachers
@@ -177,6 +178,13 @@ export const createTeacher = async (req, res) => {
       message: "Teacher created successfully",
       data: teacher,
     });
+
+    // Add teacher to course
+    await Course.findByIdAndUpdate(courseId, { $push: { teacherId: teacher._id } });
+
+    // send email
+    await sendProfileCreatedEmail(teacher, 'teacher');
+
   } catch (error) {
     console.error('❌ Create teacher error:', error);
 

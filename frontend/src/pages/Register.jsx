@@ -57,7 +57,8 @@ const Register = () => {
         email: formData.email,
         name: formData.name,
         password: formData.password,
-        avatar: formData.avatar
+        avatar: formData.avatar,
+        confirmPassword: formData.confirmPassword
       };
 
       const res = await register(registrationData);

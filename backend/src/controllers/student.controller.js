@@ -2,6 +2,7 @@
 import Student from "../models/student.model.js";
 import Course from "../models/course.model.js";
 import mongoose from "mongoose";
+import { sendProfileCreatedEmail } from "../service/email.service.js";
 
 // @desc    Get all students
 // @route   GET /api/students
@@ -160,6 +161,11 @@ export const createStudent = async (req, res) => {
       message: "Student created successfully",
       data: student,
     });
+
+
+    // send email to the student
+    await sendProfileCreatedEmail(student, 'student');
+
   } catch (error) {
     console.error('❌ Create student error:', error);
 
