@@ -179,11 +179,11 @@ export const createTeacher = async (req, res) => {
       data: teacher,
     });
 
-    // Add teacher to course
-    await Course.findByIdAndUpdate(courseId, { $push: { teacherId: teacher._id } });
 
     // send email
-    await sendProfileCreatedEmail(teacher, 'teacher');
+    sendProfileCreatedEmail(teacher, 'teacher').catch((err) => {
+      console.error("❌ Failed to send profile created email:", err);
+    });
 
   } catch (error) {
     console.error('❌ Create teacher error:', error);

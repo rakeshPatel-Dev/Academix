@@ -74,7 +74,9 @@ export const registerAdmin = async (req, res) => {
 
     // send email to admin 
 
-    await sendUserRegisteredAlert(admin, req);
+    sendUserRegisteredAlert(admin, req).catch((err) => {
+      console.error("❌ Failed to send registration alert email:", err);
+    });
 
   } catch (error) {
     console.error("❌ Register error:", error);
@@ -167,7 +169,9 @@ export const loginAdmin = async (req, res) => {
     //   `,
     // });
 
-    await sendAdminLoginAlert(admin, req);
+    sendAdminLoginAlert(admin, req).catch((err) => {
+      console.error("❌ Failed to send login alert email:", err);
+    });
 
   } catch (error) {
     console.error("❌ Login error:", error);

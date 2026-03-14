@@ -164,7 +164,9 @@ export const createStudent = async (req, res) => {
 
 
     // send email to the student
-    await sendProfileCreatedEmail(student, 'student');
+    sendProfileCreatedEmail(student, 'student').catch((err) => {
+      console.error("❌ Failed to send profile created email:", err);
+    });
 
   } catch (error) {
     console.error('❌ Create student error:', error);

@@ -145,6 +145,12 @@ const sendProfileCreatedEmail = async (user, role) => {
     phone: user.phone,
   };
 
+  const validRoles = ['student', 'teacher'];
+  if (!validRoles.includes(role)) {
+    console.error(`Invalid role for profile email: ${role}`);
+    return { success: false, error: `Invalid role: ${role}` };
+  }
+
   // Add role-specific data
   if (role === 'student') {
     emailData = {
@@ -170,14 +176,21 @@ const sendProfileCreatedEmail = async (user, role) => {
   });
 };
 
+
 const sendAdminLoginAlert = async (admin, req) => {
+
+  const clientIp = req.headers['x-forwarded-for']?.split(',')[0]?.trim()
+    || req.ip
+    || req.socket?.remoteAddress;
+
+
   return sendEmail({
     to: admin.email,
     ...templates.adminLoginAlert({
       name: admin.name,
       email: admin.email,
       timestamp: new Date().toLocaleString(),
-      ipAddress: req.ip || req.connection.remoteAddress,
+      ipAddress: clientIp,
       userAgent: req.headers['user-agent'],
     }),
   });
