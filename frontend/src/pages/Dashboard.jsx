@@ -1,5 +1,5 @@
 // pages/Dashboard.jsx
-import React, { useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   BookOpen,
   Users,
@@ -19,88 +19,94 @@ import {
   Zap
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import useFetchMultipleApis from '../hooks/useDataLength';
+import { useAuth } from '../hooks/useAuth';
 
 const API_URL = 'http://localhost:3000/api';
 
 const Dashboard = () => {
   const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
 
-  // Define API URLs for the custom hook
-  const apiUrls = useMemo(() => ({
-    teachers: `${API_URL}/teachers`,
-    students: `${API_URL}/students`,
-    courses: `${API_URL}/courses`
-  }), []); // Empty dependency array since API_URL is constant
+  const [stats, setStats] = useState({
+    studentCount: 0,
+    teacherCount: 0,
+    courseCount: 0,
+    morningStudents: 0,
+    eveningStudents: 0,
+    morningPercentage: 0,
+    eveningPercentage: 0,
+    professors: 0,
+    associateProfessors: 0,
+    assistantProfessors: 0,
+    coursesWithTeacher: 0,
+    coursesWithoutTeacher: 0,
+  });
+  const [recentItems, setRecentItems] = useState({
+    recentStudents: [],
+    recentTeachers: [],
+    recentCourses: [],
+  });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // Use the custom hook
-  const { data, loading, error } = useFetchMultipleApis(apiUrls);
+  useEffect(() => {
+    const fetchDashboardStats = async () => {
+      if (!isAuthenticated) {
+        setLoading(false);
+        return;
+      }
 
-  // Memoize the filtered data to prevent recalculations
-  const { teachers, students, courses } = useMemo(() => {
-    // Filter and extract data properly
-    const teachersData = data.find(item => item.name === 'teachers');
-    const studentsData = data.find(item => item.name === 'students');
-    const coursesData = data.find(item => item.name === 'courses');
+      try {
+        setLoading(true);
+        setError(null);
 
-    return {
-      teachers: teachersData?.data || [],
-      students: studentsData?.data || [],
-      courses: coursesData?.data || []
+        const response = await fetch(`${API_URL}/dashboard/stats`, {
+          method: 'GET',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+        });
+
+        if (!response.ok) {
+          if (response.status === 401) {
+            throw new Error('Session expired. Please log in again.');
+          }
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const json = await response.json();
+
+        if (json.success && json.data) {
+          const d = json.data;
+          setStats({
+            studentCount: d.studentCount,
+            teacherCount: d.teacherCount,
+            courseCount: d.courseCount,
+            morningStudents: d.morningStudents,
+            eveningStudents: d.eveningStudents,
+            morningPercentage: d.morningPercentage,
+            eveningPercentage: d.eveningPercentage,
+            professors: d.professors,
+            associateProfessors: d.associateProfessors,
+            assistantProfessors: d.assistantProfessors,
+            coursesWithTeacher: d.coursesWithTeacher,
+            coursesWithoutTeacher: d.coursesWithoutTeacher,
+          });
+          setRecentItems({
+            recentStudents: d.recentStudents || [],
+            recentTeachers: d.recentTeachers || [],
+            recentCourses: d.recentCourses || [],
+          });
+        }
+      } catch (err) {
+        console.error('Dashboard fetch error:', err);
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
     };
-  }, [data]); // Only recalculate when data changes
 
-
-  // Memoize statistics calculations
-  const stats = useMemo(() => {
-    // Calculate statistics
-    const teacherCount = teachers.length;
-    const studentCount = students.length;
-    const courseCount = courses.length;
-
-    // Student shift distribution
-    const morningStudents = students.filter(s => s.shift?.toLowerCase() === 'morning').length;
-    const eveningStudents = students.filter(s => s.shift?.toLowerCase() === 'evening').length;
-
-    // Teacher post distribution
-    const professors = teachers.filter(t => t.post?.toLowerCase() === 'professor').length;
-    const associateProfessors = teachers.filter(t =>
-      t.post?.toLowerCase() === 'associate professor' || t.post?.toLowerCase() === 'associate'
-    ).length;
-    const assistantProfessors = teachers.filter(t =>
-      t.post?.toLowerCase() === 'assistant professor' || t.post?.toLowerCase() === 'assistant'
-    ).length;
-
-    // Course status
-    const coursesWithTeacher = courses.filter(c => c.teacher && c.teacher.length > 0).length || 0;
-    const coursesWithoutTeacher = courses.filter(c => !c.teacher || c.teacher.length === 0).length || 0;
-
-    // Calculate percentages
-    const morningPercentage = studentCount ? Math.round((morningStudents / studentCount) * 100) : 0;
-    const eveningPercentage = studentCount ? Math.round((eveningStudents / studentCount) * 100) : 0;
-
-    return {
-      teacherCount,
-      studentCount,
-      courseCount,
-      morningStudents,
-      eveningStudents,
-      professors,
-      associateProfessors,
-      assistantProfessors,
-      coursesWithTeacher,
-      coursesWithoutTeacher,
-      morningPercentage,
-      eveningPercentage
-    };
-  }, [teachers, students, courses]);
-
-  // Memoize recent items to prevent unnecessary recalculations
-  const recentItems = useMemo(() => ({
-    recentStudents: students.slice(0, 3),
-    recentTeachers: teachers.slice(0, 3),
-    recentCourses: courses.slice(0, 3)
-  }), [students, teachers, courses]);
+    fetchDashboardStats();
+  }, [isAuthenticated]);
 
   if (loading) {
     return (
@@ -108,7 +114,7 @@ const Dashboard = () => {
         <div className="relative">
           <div className="animate-spin rounded-full h-20 w-20 border-4 border-gray-200 border-t-blue-600"></div>
           <div className="absolute inset-0 flex items-center justify-center">
-            <div className="h-10 w-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full animate-pulse"></div>
+            <div className="h-10 w-10 bg-linear-to-r from-blue-500 to-purple-600 rounded-full animate-pulse"></div>
           </div>
         </div>
       </div>
@@ -137,8 +143,8 @@ const Dashboard = () => {
     <div className="space-y-6 p-6">
       {/* Header with Stats Overview */}
       <div className="relative overflow-hidden rounded-2xl border border-white/20 p-4 sm:p-6 md:p-8">
-        {/* Premium gradient background */}
-        <div className="absolute inset-0 bg-gradient-to-br from-white/15 via-white/5 to-transparent backdrop-blur-3xl"></div>
+        {/* Premium linear background */}
+        <div className="absolute inset-0 bg-linear-to-br from-white/15 via-white/5 to-transparent backdrop-blur-3xl"></div>
 
         {/* Animated glow orbs - adjusted for mobile */}
         <div className="absolute -top-20 -right-20 w-40 h-40 bg-blue-400/10 rounded-full blur-3xl animate-pulse"></div>
@@ -158,7 +164,7 @@ const Dashboard = () => {
           {/* Mini Stats - responsive grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 mt-4 sm:mt-6">
             {/* Total Students */}
-            <div className="group relative bg-gradient-to-br from-white/20 to-white/5 backdrop-blur-md border border-white/30 shadow-[0_8px_32px_rgba(0,0,0,0.12)] rounded-xl sm:rounded-2xl p-3 sm:p-4 overflow-hidden transition-all duration-300 hover:shadow-[0_12px_40px_rgba(0,0,0,0.2)] hover:-translate-y-1">
+            <div className="group relative bg-linear-to-br from-white/20 to-white/5 backdrop-blur-md border border-white/30 shadow-[0_8px_32px_rgba(0,0,0,0.12)] rounded-xl sm:rounded-2xl p-3 sm:p-4 overflow-hidden transition-all duration-300 hover:shadow-[0_12px_40px_rgba(0,0,0,0.2)] hover:-translate-y-1">
               {/* Glow accent */}
               <div className="absolute -top-4 -right-4 w-16 sm:w-20 h-16 sm:h-20 bg-blue-400/20 rounded-full blur-2xl group-hover:bg-blue-400/30 transition-all duration-300" />
               <div className="relative z-10">
@@ -173,12 +179,12 @@ const Dashboard = () => {
                   </div>
                 </div>
                 <p className="text-black text-xl sm:text-2xl font-bold tracking-tight">{stats.studentCount}</p>
-                <div className="mt-1 sm:mt-2 h-0.5 w-6 sm:w-8 bg-gradient-to-r from-blue-500 to-transparent rounded-full" />
+                <div className="mt-1 sm:mt-2 h-0.5 w-6 sm:w-8 bg-linear-to-r from-blue-500 to-transparent rounded-full" />
               </div>
             </div>
 
             {/* Total Teachers */}
-            <div className="group relative bg-gradient-to-br from-white/20 to-white/5 backdrop-blur-md border border-white/30 shadow-[0_8px_32px_rgba(0,0,0,0.12)] rounded-xl sm:rounded-2xl p-3 sm:p-4 overflow-hidden transition-all duration-300 hover:shadow-[0_12px_40px_rgba(0,0,0,0.2)] hover:-translate-y-1">
+            <div className="group relative bg-linear-to-br from-white/20 to-white/5 backdrop-blur-md border border-white/30 shadow-[0_8px_32px_rgba(0,0,0,0.12)] rounded-xl sm:rounded-2xl p-3 sm:p-4 overflow-hidden transition-all duration-300 hover:shadow-[0_12px_40px_rgba(0,0,0,0.2)] hover:-translate-y-1">
               {/* Glow accent */}
               <div className="absolute -top-4 -right-4 w-16 sm:w-20 h-16 sm:h-20 bg-violet-400/20 rounded-full blur-2xl group-hover:bg-violet-400/30 transition-all duration-300" />
               <div className="relative z-10">
@@ -193,12 +199,12 @@ const Dashboard = () => {
                   </div>
                 </div>
                 <p className="text-black text-xl sm:text-2xl font-bold tracking-tight">{stats.teacherCount}</p>
-                <div className="mt-1 sm:mt-2 h-0.5 w-6 sm:w-8 bg-gradient-to-r from-violet-500 to-transparent rounded-full" />
+                <div className="mt-1 sm:mt-2 h-0.5 w-6 sm:w-8 bg-linear-to-r from-violet-500 to-transparent rounded-full" />
               </div>
             </div>
 
             {/* Total Courses */}
-            <div className="group relative bg-gradient-to-br from-white/20 to-white/5 backdrop-blur-md border border-white/30 shadow-[0_8px_32px_rgba(0,0,0,0.12)] rounded-xl sm:rounded-2xl p-3 sm:p-4 overflow-hidden transition-all duration-300 hover:shadow-[0_12px_40px_rgba(0,0,0,0.2)] hover:-translate-y-1">
+            <div className="group relative bg-linear-to-br from-white/20 to-white/5 backdrop-blur-md border border-white/30 shadow-[0_8px_32px_rgba(0,0,0,0.12)] rounded-xl sm:rounded-2xl p-3 sm:p-4 overflow-hidden transition-all duration-300 hover:shadow-[0_12px_40px_rgba(0,0,0,0.2)] hover:-translate-y-1">
               {/* Glow accent */}
               <div className="absolute -top-4 -right-4 w-16 sm:w-20 h-16 sm:h-20 bg-emerald-400/20 rounded-full blur-2xl group-hover:bg-emerald-400/30 transition-all duration-300" />
               <div className="relative z-10">
@@ -213,7 +219,7 @@ const Dashboard = () => {
                   </div>
                 </div>
                 <p className="text-black text-xl sm:text-2xl font-bold tracking-tight">{stats.courseCount}</p>
-                <div className="mt-1 sm:mt-2 h-0.5 w-6 sm:w-8 bg-gradient-to-r from-emerald-500 to-transparent rounded-full" />
+                <div className="mt-1 sm:mt-2 h-0.5 w-6 sm:w-8 bg-linear-to-r from-emerald-500 to-transparent rounded-full" />
               </div>
             </div>
           </div>
@@ -223,7 +229,7 @@ const Dashboard = () => {
       {/* Main Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Students Card */}
-        <div className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-green-500 to-emerald-600 p-6 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+        <div className="group relative overflow-hidden rounded-2xl bg-linear-to-br from-green-500 to-emerald-600 p-6 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
           <div className="absolute top-0 right-0 w-32 h-32 bg-white opacity-10 rounded-full transform translate-x-16 -translate-y-16"></div>
           <div className="absolute bottom-0 left-0 w-24 h-24 bg-white opacity-10 rounded-full transform -translate-x-12 translate-y-12"></div>
 
@@ -281,7 +287,7 @@ const Dashboard = () => {
         </div>
 
         {/* Teachers Card */}
-        <div className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-purple-500 to-purple-600 p-6 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+        <div className="group relative overflow-hidden rounded-2xl bg-linear-to-br from-purple-500 to-purple-600 p-6 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
           <div className="absolute top-0 right-0 w-32 h-32 bg-white opacity-10 rounded-full transform translate-x-16 -translate-y-16"></div>
           <div className="absolute bottom-0 left-0 w-24 h-24 bg-white opacity-10 rounded-full transform -translate-x-12 translate-y-12"></div>
 
@@ -325,7 +331,7 @@ const Dashboard = () => {
         </div>
 
         {/* Courses Card */}
-        <div className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 p-6 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+        <div className="group relative overflow-hidden rounded-2xl bg-linear-to-br from-blue-500 to-blue-600 p-6 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
           <div className="absolute top-0 right-0 w-32 h-32 bg-white opacity-10 rounded-full transform translate-x-16 -translate-y-16"></div>
           <div className="absolute bottom-0 left-0 w-24 h-24 bg-white opacity-10 rounded-full transform -translate-x-12 translate-y-12"></div>
 
@@ -372,6 +378,58 @@ const Dashboard = () => {
         </div>
       </div>
 
+
+      {/* Quick Actions */}
+      <div className="bg-linear-to-br from-gray-50 via-white to-gray-50 rounded-2xl shadow-xl border border-gray-100 p-8 backdrop-blur-sm">
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h3 className="text-xl font-bold text-gray-900 mb-1">Quick Actions</h3>
+            <p className="text-sm text-gray-500">Manage your platform efficiently</p>
+          </div>
+          <div className="w-12 h-12 bg-linear-to-br from-blue-100 to-blue-50 rounded-xl flex items-center justify-center">
+            <Zap size={24} className="text-blue-600" />
+          </div>
+        </div>
+
+        <div className="flex flex-wrap gap-3">
+          <button
+            onClick={() => navigate('/courses/new')}
+            className="group flex items-center gap-2 px-5 py-3 bg-linear-to-r from-blue-500 to-blue-600 text-white rounded-xl
+                 hover:shadow-lg hover:shadow-blue-500/30 hover:scale-105
+                 active:scale-95
+                 transition-all duration-200 font-medium text-sm
+                 border border-blue-600 hover:border-blue-700"
+          >
+            <PlusCircle size={18} className="group-hover:rotate-90 transition-transform duration-300" />
+            New Course
+          </button>
+
+          <button
+            onClick={() => navigate('/students/new')}
+            className="group flex items-center gap-2 px-5 py-3 bg-linear-to-r from-green-500 to-green-600 text-white rounded-xl
+                 hover:shadow-lg hover:shadow-green-500/30 hover:scale-105
+                 active:scale-95
+                 transition-all duration-200 font-medium text-sm
+                 border border-green-600 hover:border-green-700"
+          >
+            <PlusCircle size={18} className="group-hover:rotate-90 transition-transform duration-300" />
+            Add Student
+          </button>
+
+          <button
+            onClick={() => navigate('/teachers/new')}
+            className="group flex items-center gap-2 px-5 py-3 bg-linear-to-r from-purple-500 to-purple-600 text-white rounded-xl
+                 hover:shadow-lg hover:shadow-purple-500/30 hover:scale-105
+                 active:scale-95
+                 transition-all duration-200 font-medium text-sm
+                 border border-purple-600 hover:border-purple-700"
+          >
+            <PlusCircle size={18} className="group-hover:rotate-90 transition-transform duration-300" />
+            Add Teacher
+          </button>
+        </div>
+      </div>
+
       {/* Recent Items Preview */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-5 md:gap-6">
         {/* Recent Students */}
@@ -389,10 +447,10 @@ const Dashboard = () => {
             {recentItems.recentStudents.map((student, index) => (
               <div
                 key={student._id || index}
-                className="flex items-center justify-between p-2 sm:p-2.5 bg-gradient-to-r from-gray-50 to-white rounded-xl hover:from-gray-100 hover:to-gray-50 transition-all duration-200 group/item"
+                className="flex items-center justify-between p-2 sm:p-2.5 bg-linear-to-r from-gray-50 to-white rounded-xl hover:from-gray-100 hover:to-gray-50 transition-all duration-200 group/item"
               >
                 <div className='flex items-center gap-2 sm:gap-3 min-w-0 flex-1'>
-                  <div className="relative flex-shrink-0">
+                  <div className="relative shrink-0">
                     <img
                       src={student.avatar}
                       alt={student.name}
@@ -405,7 +463,7 @@ const Dashboard = () => {
                     <p className="text-[10px] sm:text-xs text-gray-500 truncate">{student.email}</p>
                   </div>
                 </div>
-                <span className="text-[10px] sm:text-xs px-2 sm:px-2.5 py-1 bg-green-50 text-green-600 rounded-full font-medium whitespace-nowrap ml-2 flex-shrink-0">
+                <span className="text-[10px] sm:text-xs px-2 sm:px-2.5 py-1 bg-green-50 text-green-600 rounded-full font-medium whitespace-nowrap ml-2 shrink-0">
                   {student.shift}
                 </span>
               </div>
@@ -437,10 +495,10 @@ const Dashboard = () => {
             {recentItems.recentTeachers.map((teacher, index) => (
               <div
                 key={teacher._id || index}
-                className="flex items-center justify-between p-2 sm:p-2.5 bg-gradient-to-r from-gray-50 to-white rounded-xl hover:from-gray-100 hover:to-gray-50 transition-all duration-200 group/item"
+                className="flex items-center justify-between p-2 sm:p-2.5 bg-linear-to-r from-gray-50 to-white rounded-xl hover:from-gray-100 hover:to-gray-50 transition-all duration-200 group/item"
               >
                 <div className='flex items-center gap-2 sm:gap-3 min-w-0 flex-1'>
-                  <div className="relative flex-shrink-0">
+                  <div className="relative shrink-0">
                     <img
                       src={teacher.avatar}
                       alt={teacher.name}
@@ -453,7 +511,7 @@ const Dashboard = () => {
                     <p className="text-[10px] sm:text-xs text-gray-500 truncate">{teacher.email}</p>
                   </div>
                 </div>
-                <span className="text-[10px] sm:text-xs px-2 sm:px-2.5 py-1 bg-purple-50 text-purple-600 rounded-full font-medium whitespace-nowrap ml-2 flex-shrink-0">
+                <span className="text-[10px] sm:text-xs px-2 sm:px-2.5 py-1 bg-purple-50 text-purple-600 rounded-full font-medium whitespace-nowrap ml-2 shrink-0">
                   {teacher.post?.split(' ')[0] || 'Teacher'}
                 </span>
               </div>
@@ -485,10 +543,10 @@ const Dashboard = () => {
             {recentItems.recentCourses.map((course, index) => (
               <div
                 key={course._id || index}
-                className="flex items-center justify-between p-2 sm:p-2.5 bg-gradient-to-r from-gray-50 to-white rounded-xl hover:from-gray-100 hover:to-gray-50 transition-all duration-200 group/item"
+                className="flex items-center justify-between p-2 sm:p-2.5 bg-linear-to-r from-gray-50 to-white rounded-xl hover:from-gray-100 hover:to-gray-50 transition-all duration-200 group/item"
               >
                 <div className='flex items-center gap-2 sm:gap-3 min-w-0 flex-1'>
-                  <div className="relative flex-shrink-0">
+                  <div className="relative shrink-0">
                     <img
                       src={course.imageURL}
                       alt={course.title}
@@ -502,7 +560,7 @@ const Dashboard = () => {
                     </p>
                   </div>
                 </div>
-                <span className={`text-[10px] sm:text-xs px-2 sm:px-2.5 py-1 rounded-full font-medium whitespace-nowrap ml-2 flex-shrink-0 ${course.teacher?.length > 0
+                <span className={`text-[10px] sm:text-xs px-2 sm:px-2.5 py-1 rounded-full font-medium whitespace-nowrap ml-2 shrink-0 ${course.teacher?.length > 0
                   ? 'bg-green-50 text-green-600'
                   : 'bg-gray-100 text-gray-600'
                   }`}>
@@ -526,56 +584,7 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Quick Actions */}
-      <div className="bg-gradient-to-br from-gray-50 via-white to-gray-50 rounded-2xl shadow-xl border border-gray-100 p-8 backdrop-blur-sm">
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h3 className="text-xl font-bold text-gray-900 mb-1">Quick Actions</h3>
-            <p className="text-sm text-gray-500">Manage your platform efficiently</p>
-          </div>
-          <div className="w-12 h-12 bg-gradient-to-br from-blue-100 to-blue-50 rounded-xl flex items-center justify-center">
-            <Zap size={24} className="text-blue-600" />
-          </div>
-        </div>
 
-        <div className="flex flex-wrap gap-3">
-          <button
-            onClick={() => navigate('/courses/new')}
-            className="group flex items-center gap-2 px-5 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl
-                 hover:shadow-lg hover:shadow-blue-500/30 hover:scale-105
-                 active:scale-95
-                 transition-all duration-200 font-medium text-sm
-                 border border-blue-600 hover:border-blue-700"
-          >
-            <PlusCircle size={18} className="group-hover:rotate-90 transition-transform duration-300" />
-            New Course
-          </button>
-
-          <button
-            onClick={() => navigate('/students/new')}
-            className="group flex items-center gap-2 px-5 py-3 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl
-                 hover:shadow-lg hover:shadow-green-500/30 hover:scale-105
-                 active:scale-95
-                 transition-all duration-200 font-medium text-sm
-                 border border-green-600 hover:border-green-700"
-          >
-            <PlusCircle size={18} className="group-hover:rotate-90 transition-transform duration-300" />
-            Add Student
-          </button>
-
-          <button
-            onClick={() => navigate('/teachers/new')}
-            className="group flex items-center gap-2 px-5 py-3 bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-xl
-                 hover:shadow-lg hover:shadow-purple-500/30 hover:scale-105
-                 active:scale-95
-                 transition-all duration-200 font-medium text-sm
-                 border border-purple-600 hover:border-purple-700"
-          >
-            <PlusCircle size={18} className="group-hover:rotate-90 transition-transform duration-300" />
-            Add Teacher
-          </button>
-        </div>
-      </div>
     </div>
   );
 };

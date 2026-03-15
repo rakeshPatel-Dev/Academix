@@ -102,7 +102,7 @@ const useFetchMultipleApis = (urls) => {
     if (urls && Object.keys(urls).length > 0) {
       fetchAllData();
     }
-  }, [isAuthenticated]); // Add isAuthenticated as dependency
+  }, [isAuthenticated, urls]); // Add isAuthenticated as dependency
 
   return { totals, data, loading, error };
 };
