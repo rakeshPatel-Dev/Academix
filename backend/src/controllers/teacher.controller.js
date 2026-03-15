@@ -143,13 +143,13 @@ export const createTeacher = async (req, res) => {
     }
 
     // Check if course exists
-    // const courseExists = await Course.findById(courseId);
-    // if (!courseExists) {
-    //   return res.status(400).json({
-    //     success: false,
-    //     message: "Assigned course does not exist",
-    //   });
-    // }
+    const courseExists = await Course.findById(courseId);
+    if (!courseExists) {
+      return res.status(400).json({
+        success: false,
+        message: "Assigned course does not exist",
+      });
+    }
 
     // Check if teacher with same phone exists (optional)
     const existingPhone = await Teacher.findOne({ phone });
@@ -172,6 +172,12 @@ export const createTeacher = async (req, res) => {
 
     // Populate course details for response
     await teacher.populate('courseId', 'title');
+
+    // Update multiple courses by adding a teacher to the teacher array
+    await Course.updateMany(
+      { _id: { $in: courseId } }, // Filter: update all courses with IDs in the courseId array
+      { $addToSet: { teacher: teacher._id } } // Update: add teacher._id to the teacher array
+    );
 
     res.status(201).json({
       success: true,

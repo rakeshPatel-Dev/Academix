@@ -39,7 +39,7 @@ const CreateTeacher = () => {
         address: formData.address,
         post: formData.post,
         avatar: formData.avatar,
-        courses: formData.courseIds // Array of course IDs
+        courseId: formData.courseId // Array of course IDs
       };
 
       console.log('📤 Creating teacher:', apiData);

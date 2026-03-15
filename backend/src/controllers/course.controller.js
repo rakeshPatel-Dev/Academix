@@ -25,11 +25,21 @@ export const createCourse = async (req, res) => {
       });
     }
 
+    // Check if teacher exists
+    const teacherExists = await Teacher.findById(teacher);
+    if (!teacherExists) {
+      return res.status(400).json({
+        success: false,
+        message: "Teacher not found",
+      });
+    }
+
     // ✅ IMPROVED: Only include teacher if provided
     const courseData = {
       title,
       description,
       imageURL: imageURL || null,
+      teacher: teacher || null,
     };
 
     // Only add teacher if it's provided and valid
@@ -40,7 +50,11 @@ export const createCourse = async (req, res) => {
     const course = await Course.create(courseData);
 
     // ✅ IMPROVED: Populate teacher for response
-    await course.populate('teacher', 'name email post');
+    await course.populate('teacher', 'name email post avatar');
+
+    // update teacher's courseId array
+    await Teacher.updateMany({ _id: teacher }, { $addToSet: { courseId: course._id } });
+
 
     res.status(201).json({
       success: true,

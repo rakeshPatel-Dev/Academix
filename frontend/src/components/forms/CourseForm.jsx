@@ -36,7 +36,7 @@ const CourseForm = ({
       title: '',
       description: '',
       imageUrl: '',
-      teacherIds: []
+      teacher: []
     }
   });
 
@@ -62,11 +62,11 @@ const CourseForm = ({
         title: initialData.title || '',
         description: initialData.description || '',
         imageUrl: initialData.imageUrl || '',
-        teacherIds: initialData.teacherIds || []
+        teacher: initialData.teacher || []
       });
 
       // Set selected teachers for UI
-      setSelectedTeachers(initialData.teacherIds || []);
+      setSelectedTeachers(initialData.teacher || []);
     }
   }, [initialData, reset]);
 
@@ -85,7 +85,7 @@ const CourseForm = ({
       ? selectedTeachers.filter(id => id !== teacherId)
       : [...selectedTeachers, teacherId];
 
-    setValue('teacherIds', newSelection);
+    setValue('teacher', newSelection);
   };
 
   // Handle form submission
@@ -95,7 +95,7 @@ const CourseForm = ({
       title: data.title,
       description: data.description,
       imageUrl: data.imageUrl || null,
-      teacherIds: selectedTeachers
+      teacher: selectedTeachers
     };
 
     console.log('📤 Form submitting:', formData);
