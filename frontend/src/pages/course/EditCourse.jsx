@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { Loader } from 'lucide-react';
-import CourseForm from '../../components/forms/courseForm';
+import CourseForm from '../../components/forms/CourseForm';
 import toast from 'react-hot-toast';
 
 const API_URL = import.meta.env.VITE_BACKEND_API_ENDPOINT;
