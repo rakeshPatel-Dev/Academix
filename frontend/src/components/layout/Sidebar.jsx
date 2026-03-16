@@ -27,10 +27,11 @@ const Sidebar = ({ collapsed, setCollapsed }) => {
   const apiUrls = useMemo(() => {
     if (!isAuthenticated) return {};
 
+    const baseApi = import.meta.env.VITE_BACKEND_API_ENDPOINT;
     return {
-      teachers: "http://localhost:3000/api/teachers",
-      students: "http://localhost:3000/api/students",
-      courses: "http://localhost:3000/api/courses",
+      teachers: `${baseApi}/teachers`,
+      students: `${baseApi}/students`,
+      courses: `${baseApi}/courses`,
     };
   }, [isAuthenticated]); // Only recreate when isAuthenticated changes
 
