@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import CourseForm from '../../components/forms/courseForm';
+import CourseForm from '../../components/forms/CourseForm';
 import toast from "react-hot-toast"
 
 
