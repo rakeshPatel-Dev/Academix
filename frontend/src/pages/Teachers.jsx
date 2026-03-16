@@ -20,7 +20,7 @@ import {
 import axios from 'axios';
 import toast from 'react-hot-toast';
 
-const API_URL = 'http://localhost:3000/api';
+const API_URL = import.meta.env.VITE_BACKEND_API_ENDPOINT;
 
 const Teachers = () => {
   const navigate = useNavigate();

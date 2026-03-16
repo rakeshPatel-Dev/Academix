@@ -21,7 +21,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 
-const API_URL = 'http://localhost:3000/api';
+const API_URL = import.meta.env.VITE_BACKEND_API_ENDPOINT;
 
 const Dashboard = () => {
   const navigate = useNavigate();

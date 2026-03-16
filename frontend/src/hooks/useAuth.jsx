@@ -3,7 +3,7 @@ import { useState, useEffect, createContext, useContext } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
-const API_URL = 'http://localhost:3000/api/admins';
+const API_URL = `${import.meta.env.VITE_BACKEND_API_ENDPOINT}/admins`;
 const AuthContext = createContext();
 
 // Provider component to wrap your app
