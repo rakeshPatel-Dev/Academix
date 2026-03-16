@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { User, Mail, Image, X, Loader, AlertCircle, CheckCircle, BrushCleaning } from 'lucide-react';
 import axios from 'axios';
 
-const API_URL = 'http://localhost:3000/api/admins';
+const API_URL = `${import.meta.env.VITE_BACKEND_API_ENDPOINT}/admins`;
 
 const EditProfileModal = ({ isOpen, onClose, user, onUpdate }) => {
   const [loading, setLoading] = useState(false);
