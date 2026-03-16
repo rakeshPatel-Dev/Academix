@@ -10,6 +10,10 @@ import dashboardRoutes from "./routes/dashboard.route.js"
 
 const app = express();
 app.use(express.json());
+
+app.get("/", (req, res) => {
+  res.status(200).json({ message: "Academix Backend is running!" });
+});
 app.use(cors({
   origin: [
     "http://localhost:5173",
