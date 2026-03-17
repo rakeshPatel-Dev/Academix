@@ -9,16 +9,22 @@ import {
   LogOut,
   Camera,
   Calendar,
-  Clock
+  Clock,
+  CheckCircle,
+  XCircle,
+  AlertCircle,
+  ShieldUser
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import EditProfileModal from './admin/EditAdmin';
+import VerifyEmailModal from './admin/VerifyEmailModel';
 
 const AdminProfile = () => {
   const { user, logout, loading: authLoading, checkAuthStatus } = useAuth();
   const navigate = useNavigate();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isVerifyModalOpen, setIsVerifyModalOpen] = useState(false);
   const [imageError, setImageError] = useState(false);
   const [currentUser, setCurrentUser] = useState(user);
 
@@ -41,6 +47,23 @@ const AdminProfile = () => {
     }));
     checkAuthStatus(); // Refresh auth context
     setImageError(false);
+  };
+
+  const handleVerificationSuccess = () => {
+    checkAuthStatus(); // Refresh auth context to update verification status
+  };
+
+  // Different avatar images based on verification status and user
+  const getAvatarSrc = () => {
+    if (currentUser.avatar && !imageError) {
+      return currentUser.avatar;
+    }
+    // Different default avatars based on verification status
+    if (currentUser.isVerified) {
+      return 'https://ui-avatars.com/api/?name=' + encodeURIComponent(currentUser.name || 'Admin') + '&background=4F46E5&color=fff&size=128&bold=true';
+    } else {
+      return 'https://ui-avatars.com/api/?name=' + encodeURIComponent(currentUser.name || 'Admin') + '&background=EF4444&color=fff&size=128&bold=true';
+    }
   };
 
   if (authLoading) {
@@ -94,21 +117,20 @@ const AdminProfile = () => {
           {/* Main Content */}
           <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
             {/* Profile Header */}
-            <div className="bg-gradient-to-r from-blue-600 to-cyan-500 px-6 py-8">
+            <div className={`bg-gradient-to-r px-6 py-8 ${currentUser.isVerified
+              ? 'from-green-600 to-emerald-500'
+              : 'from-yellow-600 to-orange-500'
+              }`}>
               <div className="flex items-center gap-6">
                 {/* Avatar */}
                 <div className="relative">
                   <div className="w-24 h-24 rounded-full bg-white/20 backdrop-blur flex items-center justify-center overflow-hidden border-4 border-white/50">
-                    {currentUser.avatar && !imageError ? (
-                      <img
-                        src={currentUser.avatar}
-                        alt={currentUser.name}
-                        className="w-full h-full object-cover"
-                        onError={handleImageError}
-                      />
-                    ) : (
-                      <User size={40} className="text-white" />
-                    )}
+                    <img
+                      src={getAvatarSrc()}
+                      alt={currentUser.name}
+                      className="w-full h-full object-cover"
+                      onError={handleImageError}
+                    />
                   </div>
                   <button
                     onClick={() => setIsModalOpen(true)}
@@ -121,14 +143,32 @@ const AdminProfile = () => {
                 {/* User Info */}
                 <div className="flex-1 text-white">
                   <h2 className="text-2xl font-bold mb-1">{currentUser.name}</h2>
-                  <p className="text-blue-100 flex items-center gap-2">
+                  <p className="text-white/90 flex items-center gap-2">
                     <Mail size={16} />
                     {currentUser.email}
                   </p>
-                  <p className="text-blue-100 text-sm mt-1 flex items-center gap-2">
-                    <Shield size={14} />
-                    Administrator
-                  </p>
+                  <div className="flex items-center gap-2 mt-2">
+                    <p className="text-white/90 text-sm flex items-center gap-1">
+                      <ShieldUser size={14} />
+                      Administrator
+                    </p>
+                    <span className="w-1 h-1 bg-white/60 rounded-full"></span>
+                    {/* Verification Status Badge */}
+                    {currentUser.isVerified ? (
+                      <span className="inline-flex items-center gap-1 text-xs bg-green-500 text-white px-2 py-0.5 rounded-full">
+                        <CheckCircle size={12} />
+                        Verified
+                      </span>
+                    ) : (
+                      <button
+                        onClick={() => setIsVerifyModalOpen(true)}
+                        className="inline-flex items-center gap-1 text-xs bg-yellow-500 text-white px-2 py-0.5 rounded-full hover:bg-yellow-600 transition-colors"
+                      >
+                        <AlertCircle size={12} />
+                        Verify Email
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
@@ -148,14 +188,27 @@ const AdminProfile = () => {
                   </div>
                 </div>
 
-                {/* Email Display */}
+                {/* Email Display with Verification Status */}
                 <div className="flex items-start gap-4 p-4 bg-gray-50 rounded-xl">
                   <div className="p-2 bg-purple-100 rounded-lg">
                     <Mail size={20} className="text-purple-600" />
                   </div>
                   <div className="flex-1">
                     <p className="text-sm text-gray-500 mb-1">Email Address</p>
-                    <p className="text-lg font-medium text-gray-900">{currentUser.email}</p>
+                    <div className="flex items-center gap-2">
+                      <p className="text-lg font-medium text-gray-900">{currentUser.email}</p>
+                      {currentUser.isVerified ? (
+                        <span className="inline-flex items-center gap-1 text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full">
+                          <CheckCircle size={12} />
+                          Verified
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-full">
+                          <XCircle size={12} />
+                          Not Verified
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
 
@@ -203,14 +256,26 @@ const AdminProfile = () => {
                   </div>
                 </div>
 
-                {/* Edit Button */}
-                <button
-                  onClick={() => setIsModalOpen(true)}
-                  className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl transition-all duration-200"
-                >
-                  <Edit2 size={18} />
-                  <span>Edit Profile</span>
-                </button>
+                {/* Action Buttons */}
+                <div className="space-y-3">
+                  {!currentUser.isVerified && (
+                    <button
+                      onClick={() => setIsVerifyModalOpen(true)}
+                      className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-yellow-600 hover:bg-yellow-700 text-white font-medium rounded-xl transition-all duration-200"
+                    >
+                      <AlertCircle size={18} />
+                      <span>Verify Email Address</span>
+                    </button>
+                  )}
+
+                  <button
+                    onClick={() => setIsModalOpen(true)}
+                    className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl transition-all duration-200"
+                  >
+                    <Edit2 size={18} />
+                    <span>Edit Profile</span>
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -228,6 +293,14 @@ const AdminProfile = () => {
         onClose={() => setIsModalOpen(false)}
         user={currentUser}
         onUpdate={handleUpdateSuccess}
+      />
+
+      {/* Verify Email Modal */}
+      <VerifyEmailModal
+        isOpen={isVerifyModalOpen}
+        onClose={() => setIsVerifyModalOpen(false)}
+        user={currentUser}
+        onVerificationSuccess={handleVerificationSuccess}
       />
     </>
   );

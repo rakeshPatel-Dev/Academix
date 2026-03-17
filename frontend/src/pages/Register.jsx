@@ -63,10 +63,10 @@ const Register = () => {
 
       const res = await register(registrationData);
       if (res.success) {
-        toast.success('Registration successful! Please login to continue.');
+        toast.success('Registration successful! Redirecting to dashboard...');
         setTimeout(() => {
-          navigate('/login');
-        }, 2000);
+          navigate('/dashboard');
+        }, 1000);
       } else {
         toast.error(res.message);
       }

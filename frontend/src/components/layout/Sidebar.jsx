@@ -13,7 +13,9 @@ import {
   GraduationCap,
   Settings,
   Menu,
-  X
+  X,
+  BadgeCheck,
+  BadgeAlert
 } from 'lucide-react';
 import useFetchMultipleApis from '../../hooks/useDataLength';
 import toast from 'react-hot-toast';
@@ -280,45 +282,69 @@ const Sidebar = ({ collapsed, setCollapsed }) => {
           {/* User Profile */}
           <div className={`
             flex items-center ${collapsed ? 'justify-center' : 'space-x-3'} 
-            p-2 bg-gray-50 rounded-lg
-          `}>
-            <div className="shrink-0">
+             p-2 ${user.isVerified ? 'bg-green-800' : 'bg-yellow-800'} rounded-lg
+              `}>
+            <div className="shrink-0 relative">
               {user?.avatar ? (
                 <img
                   src={user.avatar}
                   alt={user.name}
-                  className="w-8 h-8 rounded-full object-cover"
+                  className={`w-12 h-12 border-2 rounded-full object-cover ${user.isVerified ? 'border-green-500' : 'border-yellow-500'}`}
                   onError={(e) => {
                     e.target.onerror = null;
                     e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=3b82f6&color=fff`
                   }}
                 />
               ) : (
-                <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-cyan-500 rounded-full flex items-center justify-center text-white font-semibold">
+                <div className="w-10 h-10 bg-linear-to-r from-blue-600 to-cyan-500 rounded-full flex items-center justify-center text-white font-semibold">
                   {user?.name?.charAt(0) || 'A'}
                 </div>
               )}
+
+              {/* Verified/Unverified Badge */}
+              <div className={`
+                absolute -bottom-1 -right-1 w-4 h-4 rounded-full flex items-center justify-center text-xs
+                  ${user?.isVerified
+                  ? 'bg-green-500 text-white'
+                  : 'bg-yellow-400 text-white'
+                }
+                `}>
+                {user?.isVerified ? <BadgeCheck /> : <BadgeAlert />}
+              </div>
             </div>
 
             {!collapsed && user && (
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-gray-900 truncate">
-                  {user.name}
-                </p>
-                <p className="text-xs text-gray-500 truncate">Administrator</p>
+                <div className="flex items-center gap-2">
+                  <p className="text-sm font-medium text-white truncate">
+                    {user.name}
+                  </p>
+                  {/* {user?.isVerified ? (
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-green-100 text-green-700 text-xs font-medium rounded-full">
+                      <span className="w-1.5 h-1.5 bg-green-500 rounded-full"></span>
+                      Verified
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-yellow-100 text-yellow-700 text-xs font-medium rounded-full">
+                      <span className="w-1.5 h-1.5 bg-yellow-500 rounded-full"></span>
+                      Unverified
+                    </span>
+                  )} */}
+                </div>
+                <p className="text-xs text-white/50 truncate">Administrator</p>
               </div>
             )}
 
-            <button
+            {!collapsed && <button
               onClick={handleLogout}
               className={`
-                p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors
-                ${collapsed ? 'ml-0' : ''}
-              `}
+               p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors
+                 ${collapsed ? 'ml-0' : ''}
+                `}
               title="Logout"
             >
               <LogOut size={18} />
-            </button>
+            </button>}
           </div>
         </div>
       </aside>

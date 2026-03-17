@@ -1,10 +1,18 @@
 import nodemailer from 'nodemailer';
+import config from '../config/env.config.js';
+
+const env = process.env.NODE_ENV || 'development';
+const smtpConfig = config[env].SMTP;
+
 // Create reusable transporter
 const transporter = nodemailer.createTransport({
-  service: process.env.SMTP_SERVICE,
+  host: smtpConfig.HOST,
+  port: smtpConfig.PORT,
+  secure: smtpConfig.PORT === 465, // true for 465, false for other ports
+  service: smtpConfig.SERVICE,
   auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS,
+    user: smtpConfig.USER,
+    pass: smtpConfig.PASS,
   },
 });
 
@@ -80,6 +88,18 @@ const templates = {
         <li><strong>Role:</strong> ${data.role}</li>
         <li><strong>Time:</strong> ${data.timestamp}</li>
       </ul>
+    `,
+  }),
+
+  emailVerificationCode: (data) => ({
+    subject: 'Email Verification Code',
+    html: `
+      <h2>Email Verification Code</h2>
+      <p>Dear ${data.name},</p>
+      <p>Here is your email verification code:</p>
+      <p><strong>${data.code}</strong></p>
+      <p>Please use this code to verify your email address.</p>
+      <p><strong>It will expire in 10 minutes from now.</strong></p>
     `,
   }),
 
@@ -176,7 +196,7 @@ const sendProfileCreatedEmail = async (user, role) => {
   });
 };
 
-
+// send admin login alert
 const sendAdminLoginAlert = async (admin, req) => {
 
   const clientIp = req.headers['x-forwarded-for']?.split(',')[0]?.trim()
@@ -196,6 +216,7 @@ const sendAdminLoginAlert = async (admin, req) => {
   });
 };
 
+// send user registered alert
 const sendUserRegisteredAlert = async (newUser) => {
   return sendEmail({
     to: newUser.email,
@@ -204,6 +225,17 @@ const sendUserRegisteredAlert = async (newUser) => {
       email: newUser.email,
       role: "Admin",
       timestamp: new Date().toLocaleString(),
+    }),
+  });
+};
+
+// send verification code
+const sendVerificationCodeEmail = async (admin) => {
+  return sendEmail({
+    to: admin.email,
+    ...templates.emailVerificationCode({
+      name: admin.name,
+      code: admin.verificationCode
     }),
   });
 };
@@ -238,6 +270,7 @@ export {
   sendEmail,
   sendProfileCreatedEmail,
   sendAdminLoginAlert,
+  sendVerificationCodeEmail,
   sendUserRegisteredAlert,
   sendCourseAssignedEmail,
 };
