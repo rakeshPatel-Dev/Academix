@@ -155,19 +155,19 @@ export const loginAdmin = async (req, res) => {
 
     // send login email
 
-    await sendEmail({
-      to: admin.email,
-      subject: "Admin Login Alert",
-      html: `
-        <h2>Admin Login Detected</h2>
-        <p>An admin user logged into the system:</p>
-        <ul>
-          <li><strong>Admin:</strong> ${admin.name} (${admin.email})</li>
-          <li><strong>Time:</strong> ${loginTime}</li>
-        </ul>
-        <p>If this wasn't you, please contact IT immediately.</p>
-      `,
-    });
+    // await sendEmail({
+    //   to: admin.email,
+    //   subject: "Admin Login Alert",
+    //   html: `
+    //     <h2>Admin Login Detected</h2>
+    //     <p>An admin user logged into the system:</p>
+    //     <ul>
+    //       <li><strong>Admin:</strong> ${admin.name} (${admin.email})</li>
+    //       <li><strong>Time:</strong> ${loginTime}</li>
+    //     </ul>
+    //     <p>If this wasn't you, please contact IT immediately.</p>
+    //   `,
+    // });
 
     // sendAdminLoginAlert(admin, req).catch((err) => {
     //   console.error("❌ Failed to send login alert email:", err);

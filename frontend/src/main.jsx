@@ -8,7 +8,6 @@ import { AuthProvider } from './hooks/useAuth.jsx'
 createRoot(document.getElementById('root')).render(
   <BrowserRouter >
     <AuthProvider>
-
       <App />
     </AuthProvider>
   </BrowserRouter>
