@@ -2,7 +2,7 @@
 import Admin from "../models/admin.model.js";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
-import { sendEmail, sendAdminLoginAlert, sendUserRegisteredAlert } from "../service/email.service.js";
+import { sendEmail, sendAdminLoginAlert, sendUserRegisteredAlert, sendVerificationCodeEmail } from "../service/email.service.js";
 
 // @desc    Register new admin
 // @route   POST /api/admins/register
@@ -74,9 +74,9 @@ export const registerAdmin = async (req, res) => {
 
     // send email to admin 
 
-    sendUserRegisteredAlert(admin, req).catch((err) => {
-      console.error("❌ Failed to send registration alert email:", err);
-    });
+    // sendUserRegisteredAlert(admin, req).catch((err) => {
+    //   console.error("❌ Failed to send registration alert email:", err);
+    // });
 
   } catch (error) {
     console.error("❌ Register error:", error);
@@ -307,3 +307,118 @@ export const updateCurrentAdminProfile = async (req, res) => {
     });
   }
 };
+
+
+// @desc    Send verification code to admin email
+// @route   POST /api/admins/send-code
+export const sendVerificationCode = async (req, res) => {
+  try {
+    const admin = req.user;
+
+    if (admin.isVerified) {
+      return res.status(400).json({
+        success: false,
+        message: "Email already verified"
+      });
+    }
+
+    // Clear old verification code for resend
+    admin.verificationCode = null;
+    admin.verificationCodeExpire = null;
+
+    // Generate new 6-digit code
+    const vCode = (Math.floor(Math.random() * 900000) + 100000).toString();
+    admin.verificationCode = vCode;
+    admin.verificationCodeExpire = Date.now() + 10 * 60 * 1000;
+
+    await admin.save();
+
+    // Send the email
+    await sendVerificationCodeEmail(admin);
+
+    res.status(200).json({
+      success: true,
+      message: "Verification code sent to your email",
+      data: {
+        expiresIn: admin.verificationCodeExpire
+      }
+
+    });
+
+  } catch (error) {
+    console.error("❌ Send verification code error:", error);
+    res.status(500).json({
+      success: false,
+      message: `Failed to send verification code. ${error.message}`
+    });
+  }
+};
+
+// @desc    verify admin
+// @route   POST /api/admins/verify-code
+export const verifyCode = async (req, res) => {
+  try {
+    const { email, verificationCode } = req.body;
+
+    // Validate required fields
+    if (!email || !verificationCode) {
+      return res.status(400).json({
+        success: false,
+        message: "Email and verification code are required."
+      });
+    }
+
+    const admin = await Admin.findOne({ email });
+
+    // Check if admin exists
+    if (!admin) {
+      return res.status(404).json({
+        success: false,
+        message: "Admin not found"
+      });
+    }
+
+    // Check if email is already verified
+    if (admin.isVerified) {
+      return res.status(400).json({
+        success: false,
+        message: "Email already verified"
+      });
+    }
+
+    // Check if verification code is valid
+    if (admin.verificationCode !== verificationCode) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid verification code"
+      });
+    }
+
+    // Check if verification code has expired
+    if (admin.verificationCodeExpire < new Date()) {
+      return res.status(400).json({
+        success: false,
+        message: "Verification code has expired"
+      });
+    }
+
+    // Verify email and nullify related fields
+    admin.isVerified = true;
+    admin.verificationCode = null;
+    admin.verificationCodeExpire = null;
+    await admin.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Email verified successfully"
+    });
+
+  } catch (error) {
+    console.error("❌ Verify email error:", error);
+    res.status(500).json({
+      success: false,
+      message: `Failed to verify email. ${error.message}`
+    });
+  }
+};
+

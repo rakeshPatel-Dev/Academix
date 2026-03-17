@@ -1,5 +1,5 @@
 // backend/src/server.js
-import "dotenv/config";
+import './config/env.config.js';
 import app from "./app.js";
 import connectDB from './config/mongoose.config.js';
 

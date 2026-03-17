@@ -1,6 +1,5 @@
 import mongoose from "mongoose";
-import bcrypt from "bcryptjs";
-import crypto from "crypto";
+
 
 const adminSchema = new mongoose.Schema(
   {
@@ -30,11 +29,11 @@ const adminSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
-    verificationToken: {
+    verificationCode: {
       type: String,
       default: null,
     },
-    verificationTokenExpire: {
+    verificationCodeExpire: {
       type: Date,
       default: null,
     },

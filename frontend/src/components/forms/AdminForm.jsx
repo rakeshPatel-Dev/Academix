@@ -210,7 +210,7 @@ const AdminForm = ({
                 {/* Image Preview */}
                 {imagePreview && (
                   <div className="mt-3 flex items-center gap-3 p-2 bg-gray-50 rounded-lg">
-                    <div className="w-12 h-12 rounded-lg overflow-hidden bg-gray-200 flex-shrink-0">
+                    <div className="w-12 h-12 rounded-lg overflow-hidden bg-gray-200 shrink-0">
                       <img
                         src={imagePreview}
                         alt="Preview"
