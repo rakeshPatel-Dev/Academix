@@ -14,13 +14,25 @@ app.use(express.json());
 app.get("/", (req, res) => {
   res.status(200).json({ message: "Academix Backend is running!" });
 });
+const allowedOrigins = [
+  process.env.FRONTEND_URL
+].filter(Boolean);
+
+// Add localhost only in development
+if (process.env.NODE_ENV !== "production") {
+  allowedOrigins.push("http://localhost:5173");
+}
+
 app.use(cors({
-  origin: [
-    "http://localhost:5173",
-    "http://localhost:3000",
-    "https://academix-rakesh.vercel.app",
-    process.env.FRONTEND_URL
-  ].filter(Boolean),
+  origin: (origin, callback) => {
+    // Allow requests with no origin (e.g., mobile apps, curl)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
   credentials: true
 }));
 
