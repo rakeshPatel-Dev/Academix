@@ -5,7 +5,7 @@ import Admin from "../models/admin.model.js";
 export const authenticateAdmin = async (req, res, next) => {
   try {
     // Get token from cookie
-    const token = req.cookies.token;
+    const { token } = req.cookies;
 
     if (!token) {
       return res.status(401).json({
