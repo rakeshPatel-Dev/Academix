@@ -9,23 +9,16 @@ import dashboardRoutes from "./routes/dashboard.route.js"
 // import indexRoutes from "./routes/index.route.js"
 
 const app = express();
-app.use(express.json());
 
-app.get("/", (req, res) => {
-  res.status(200).json({ message: "Academix Backend is running!" });
-});
-const allowedOrigins = [
-  process.env.FRONTEND_URL
-].filter(Boolean);
+// ✅ CORS must come first
+const allowedOrigins = [process.env.FRONTEND_URL].filter(Boolean);
 
-// Add localhost only in development
 if (process.env.NODE_ENV !== "production") {
   allowedOrigins.push("http://localhost:5173");
 }
 
 app.use(cors({
   origin: (origin, callback) => {
-    // Allow requests with no origin (e.g., mobile apps, curl)
     if (!origin) return callback(null, true);
     if (allowedOrigins.includes(origin)) {
       callback(null, true);
@@ -36,7 +29,14 @@ app.use(cors({
   credentials: true
 }));
 
+// Then the rest of your middleware
+app.use(express.json());
 app.use(cookieParser());
+
+app.get("/", (req, res) => {
+  res.status(200).json({ message: "Academix Backend is running!" });
+});
+
 // app.use("/api", indexRoutes);
 app.use("/api/students", studentRoutes);
 app.use("/api/courses", courseRoutes);
