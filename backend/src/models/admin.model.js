@@ -47,20 +47,11 @@ const adminSchema = new mongoose.Schema(
       type: Date,
       default: null,
     },
-    otpVerified: {
+    twoFA: {
       type: Boolean,
       default: false,
     },
 
-    // ── Password Reset ────────────────────────────
-    resetPasswordToken: {
-      type: String,
-      default: null,
-    },
-    resetPasswordExpire: {
-      type: Date,
-      default: null,
-    },
   },
   { timestamps: true }
 );
