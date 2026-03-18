@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { Shield, Mail, Lock, Eye, EyeOff, Loader, User, Image, AlertCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import ForgotPasswordModal from '../../pages/admin/ForgetPasswordModal';
 
 const AdminForm = ({
   type, // 'login' or 'register'
@@ -15,6 +16,7 @@ const AdminForm = ({
 }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [isForgotPasswordOpen, setIsForgotPasswordOpen] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -247,7 +249,7 @@ const AdminForm = ({
                 <div className="text-sm">
                   <button
                     type="button"
-                    onClick={() => alert('Password reset functionality would go here')}
+                    onClick={() => setIsForgotPasswordOpen(true)}
                     className="font-medium text-blue-600 hover:text-blue-500 transition-colors"
                   >
                     Forgot password?
@@ -259,7 +261,7 @@ const AdminForm = ({
             {/* Error Message */}
             {error && (
               <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-xl text-sm flex items-center gap-2">
-                <AlertCircle size={18} className="flex-shrink-0" />
+                <AlertCircle size={18} className="shrink-0" />
                 <span>{error}</span>
               </div>
             )}
@@ -317,8 +319,14 @@ const AdminForm = ({
           background-size: 50px 50px;
         }
       `}</style>
+      <ForgotPasswordModal
+        isOpen={isForgotPasswordOpen}
+        onClose={() => setIsForgotPasswordOpen(false)}
+      />
     </div>
+
   );
+
 };
 
 export default AdminForm;

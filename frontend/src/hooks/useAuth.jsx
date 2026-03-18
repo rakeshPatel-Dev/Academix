@@ -70,6 +70,31 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+
+  // forget password function
+  const forgetPassword = async (email) => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const response = await axios.post(`${API_URL}/forget-password`, {
+        email
+      }, { withCredentials: true });
+
+      if (response.data.success) {
+        // Don't set user or authenticate - this is just a password reset request
+        return { success: true, message: response.data.message || 'Password reset email sent' };
+      }
+      return { success: false, error: response.data.message };
+    } catch (error) {
+      const message = error.response?.data?.message || 'Password reset request failed';
+      setError(message);
+      return { success: false, error: message };
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Register function
   const register = async (userData) => {
     try {
@@ -121,6 +146,7 @@ export const AuthProvider = ({ children }) => {
     isAuthenticated,
     login,
     logout,
+    forgetPassword,
     register,
     checkAuthStatus
   };

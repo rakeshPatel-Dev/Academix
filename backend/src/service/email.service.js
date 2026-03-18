@@ -103,6 +103,19 @@ const templates = {
     `,
   }),
 
+  resetPassword: (data) => ({
+    subject: 'Reset Password Code',
+    html: `
+      <h2>Password Reset Code</h2>
+      <p>Dear ${data.name},</p>
+      <p>For the email:<strong> ${data.email}</strong></p>
+      <p>Here is your password reset code:</p>
+      <p><strong>${data.code}</strong></p>
+      <p>Please use this code to reset your password.</p>
+      <p><strong>It will expire in 10 minutes from now.</strong></p>
+    `,
+  }),
+
   courseAssignedTeacher: (data) => ({
     subject: 'New Course Assignment',
     html: `
@@ -240,6 +253,18 @@ const sendVerificationCodeEmail = async (admin) => {
   });
 };
 
+// send reset code
+const sendResetCodeEmail = async (admin) => {
+  return sendEmail({
+    to: admin.email,
+    ...templates.resetPassword({
+      name: admin.name,
+      email: admin.email,
+      code: admin.verificationCode
+    }),
+  });
+};
+
 const sendCourseAssignedEmail = async (assignment) => {
   if (assignment.type === 'teacher') {
     return sendEmail({
@@ -271,6 +296,7 @@ export {
   sendProfileCreatedEmail,
   sendAdminLoginAlert,
   sendVerificationCodeEmail,
+  sendResetCodeEmail,
   sendUserRegisteredAlert,
   sendCourseAssignedEmail,
 };

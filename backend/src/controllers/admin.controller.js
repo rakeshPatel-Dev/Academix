@@ -2,7 +2,7 @@
 import Admin from "../models/admin.model.js";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
-import { sendEmail, sendAdminLoginAlert, sendUserRegisteredAlert, sendVerificationCodeEmail } from "../service/email.service.js";
+import { sendEmail, sendAdminLoginAlert, sendUserRegisteredAlert, sendVerificationCodeEmail, sendResetCodeEmail } from "../service/email.service.js";
 
 // @desc    Register new admin
 // @route   POST /api/admins/register
@@ -422,3 +422,156 @@ export const verifyCode = async (req, res) => {
   }
 };
 
+// @desc    send reset password code
+// @route   POST /api/admins/reset-password/send-code
+export const sendResetCode = async (req, res) => {
+
+  try {
+    const { email } = req.body;
+
+    // Validate required fields
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        message: "Email is required."
+      });
+    }
+
+    const admin = await Admin.findOne({ email });
+
+    // Check if admin exists
+    if (!admin) {
+      return res.status(404).json({
+        success: false,
+        message: "Admin not found"
+      });
+    }
+
+    // Generate new 6-digit code
+    const vCode = (Math.floor(Math.random() * 900000) + 100000).toString();
+    admin.verificationCode = vCode;
+    admin.verificationCodeExpire = Date.now() + 10 * 60 * 1000;
+
+    await admin.save();
+
+    // Send the email
+    await sendResetCodeEmail(admin);
+
+    res.status(200).json({
+      success: true,
+      message: "Reset password code sent to your email",
+      data: {
+        expiresIn: admin.verificationCodeExpire
+      }
+    });
+
+  } catch (error) {
+    console.error("❌ Send reset password code error:", error);
+    res.status(500).json({
+      success: false,
+      message: `Failed to send reset password code. ${error.message}`
+    });
+  }
+}
+
+//@desc    validate reset password code
+// @route   POST /api/admins/reset-password/verify-code
+export const validateResetCode = async (req, res) => {
+  try {
+    const { email, verificationCode } = req.body;
+
+    // Validate required fields
+    if (!email || !verificationCode) {
+      return res.status(400).json({
+        success: false,
+        message: "Email and verification code are required."
+      });
+    }
+
+    const admin = await Admin.findOne({ email });
+
+    // Check if admin exists
+    if (!admin) {
+      return res.status(404).json({
+        success: false,
+        message: "Admin not found"
+      });
+    }
+
+    // Check if verification code is valid
+    if (admin.verificationCode !== verificationCode) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid verification code"
+      });
+    }
+
+    // Check if verification code has expired
+    if (admin.verificationCodeExpire < new Date()) {
+      return res.status(400).json({
+        success: false,
+        message: "Verification code has expired"
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Verification code is valid"
+    });
+
+  } catch (error) {
+    console.error("❌ Validate reset password code error:", error);
+    res.status(500).json({
+      success: false,
+      message: `Failed to validate reset password code. ${error.message}`
+    });
+  }
+}
+
+// @desc    reset password
+// @route   POST /api/admins/reset-password
+export const resetPassword = async (req, res) => {
+  try {
+    const { email, verificationCode, newPassword } = req.body;
+
+    // Validate required fields
+    if (!email || !verificationCode || !newPassword) {
+      return res.status(400).json({
+        success: false,
+        message: "Email, verification code, and new password are required."
+      });
+    }
+
+    const admin = await Admin.findOne({ email });
+
+    // Check if admin exists
+    if (!admin) {
+      return res.status(404).json({
+        success: false,
+        message: "Admin not found"
+      });
+    }
+
+    // Hash the new password
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+    admin.password = hashedPassword;
+    admin.verificationCode = null;
+    admin.verificationCodeExpire = null;
+
+    await admin.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Password reset successfully"
+    });
+
+  } catch (error) {
+    console.error("❌ Reset password error:", error);
+    res.status(500).json({
+      success: false,
+      message: `Failed to reset password. ${error.message}`
+    });
+  }
+}
