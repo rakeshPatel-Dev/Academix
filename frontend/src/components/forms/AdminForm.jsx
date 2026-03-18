@@ -224,7 +224,7 @@ const AdminForm = ({
                     </div>
                     <div className="flex-1">
                       <p className="text-xs text-gray-500">Image preview</p>
-                      <p className="text-xs font-medium text-gray-700 truncate">{formData.avatar}</p>
+                      <p className="text-xs font-medium w-70 text-gray-700 truncate">{formData.avatar}</p>
                     </div>
                   </div>
                 )}
