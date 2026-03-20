@@ -13,20 +13,25 @@ import {
   CheckCircle,
   XCircle,
   AlertCircle,
-  ShieldUser
+  ShieldUser,
+  Trash2
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import EditProfileModal from './admin/EditAdmin';
 import VerifyEmailModal from './admin/VerifyEmailModel';
+import DeleteAccountModal from './admin/DeleteAdminModel';
+import toast from 'react-hot-toast';
 
 const AdminProfile = () => {
-  const { user, logout, loading: authLoading, checkAuthStatus } = useAuth();
+  const { user, logout, loading: authLoading, deleteAccount, checkAuthStatus } = useAuth();
   const navigate = useNavigate();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isVerifyModalOpen, setIsVerifyModalOpen] = useState(false);
   const [imageError, setImageError] = useState(false);
   const [currentUser, setCurrentUser] = useState(user);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     setCurrentUser(user);
@@ -47,6 +52,21 @@ const AdminProfile = () => {
     }));
     checkAuthStatus(); // Refresh auth context
     setImageError(false);
+  };
+
+  // Add this function to handle account deletion:
+  const handleDeleteAccount = async () => {
+    setIsDeleting(true);
+    const result = await deleteAccount();
+    setIsDeleting(false);
+
+    if (result.success) {
+      // Account deleted successfully - navigation is handled in the hook
+      setIsDeleteModalOpen(false);
+    } else {
+      // Show error message to user
+      toast.error(result.error || 'Failed to delete account. Please try again.');
+    }
   };
 
   const handleVerificationSuccess = () => {
@@ -275,6 +295,17 @@ const AdminProfile = () => {
                     <Edit2 size={18} />
                     <span>Edit Profile</span>
                   </button>
+
+                  {/* Delete Account */}
+
+                  <button
+                    onClick={() => setIsDeleteModalOpen(true)}
+                    className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-red-50 hover:bg-red-100 text-red-600 font-medium rounded-xl transition-all duration-200 border border-red-200"
+                  >
+                    <Trash2 size={18} />
+                    <span>Delete Account</span>
+                  </button>
+
                 </div>
               </div>
             </div>
@@ -301,6 +332,14 @@ const AdminProfile = () => {
         onClose={() => setIsVerifyModalOpen(false)}
         user={currentUser}
         onVerificationSuccess={handleVerificationSuccess}
+      />
+
+      {/* Delete Account Modal */}
+      <DeleteAccountModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={handleDeleteAccount}
+        loading={isDeleting}
       />
     </>
   );
