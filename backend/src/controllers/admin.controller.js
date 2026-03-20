@@ -308,6 +308,63 @@ export const updateCurrentAdminProfile = async (req, res) => {
   }
 };
 
+// @desc    delete admin profile
+// @route   DELETE /api/admins/delete/:id
+export const deleteAdminProfile = async (req, res) => {
+  try {
+    // Get admin ID from the authenticated user (set by auth middleware)
+    const adminId = req.user.id;
+
+    // Validate required fields
+    if (!adminId) {
+      return res.status(400).json({
+        success: false,
+        message: "Admin ID is required."
+      });
+    }
+
+    // Check if admin exists
+    const admin = await Admin.findById(adminId);
+    if (!admin) {
+      return res.status(404).json({
+        success: false,
+        message: "Admin not found"
+      });
+    }
+
+    // check if this is the last admin
+    const admins = await Admin.find();
+    if (admins.length === 1) {
+      return res.status(400).json({
+        success: false,
+        message: "Cannot delete the last admin. At least one admin is required."
+      });
+    }
+
+    // Delete admin
+    const deletedAdmin = await Admin.findByIdAndDelete(adminId);
+
+    if (!deletedAdmin) {
+      return res.status(404).json({
+        success: false,
+        message: "Admin not found"
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Profile deleted successfully"
+    });
+
+  } catch (error) {
+    console.error("❌ Delete profile error:", error);
+    res.status(500).json({
+      success: false,
+      message: `Failed to delete profile. ${error.message}`
+    });
+  }
+};
+
 
 // @desc    Send verification code to admin email
 // @route   POST /api/admins/send-code

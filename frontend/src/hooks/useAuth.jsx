@@ -139,6 +139,34 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // hooks/useAuth.js - Add this function inside your AuthProvider
+  const deleteAccount = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const response = await axios.delete(`${API_URL}/delete`, {
+        withCredentials: true
+      });
+
+      if (response.data.success) {
+        // Clear user data
+        setUser(null);
+        setIsAuthenticated(false);
+        // Navigate to login or home page
+        navigate('/login');
+        return { success: true, message: response.data.message || 'Account deleted successfully' };
+      }
+      return { success: false, error: response.data.message };
+    } catch (error) {
+      const message = error.response?.data?.message || 'Account deletion failed';
+      setError(message);
+      return { success: false, error: message };
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const value = {
     user,
     loading,
@@ -148,6 +176,7 @@ export const AuthProvider = ({ children }) => {
     logout,
     forgetPassword,
     register,
+    deleteAccount,
     checkAuthStatus
   };
 

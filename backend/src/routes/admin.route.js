@@ -10,7 +10,8 @@ import {
   verifyCode,
   sendResetCode,
   validateResetCode,
-  resetPassword
+  resetPassword,
+  deleteAdminProfile
 } from '../controllers/admin.controller.js';
 import { authenticateAdmin } from '../middlewares/auth.middleware.js';
 
@@ -29,6 +30,7 @@ router.get('/profile', authenticateAdmin, getCurrentAdminProfile);
 router.put('/profile', authenticateAdmin, updateCurrentAdminProfile);
 router.post('/send-code', authenticateAdmin, sendVerificationCode);
 router.post('/verify-code', authenticateAdmin, verifyCode);
+router.delete("/delete", authenticateAdmin, deleteAdminProfile);
 
 
 export default router;
