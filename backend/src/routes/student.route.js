@@ -12,6 +12,7 @@ import {
   getStudentStats
 } from "../controllers/student.controller.js";
 import { authenticateAdmin } from "../middlewares/auth.middleware.js";
+import { requiresAdminRole } from "../middlewares/role.middleware.js";
 
 const router = express.Router();
 
@@ -24,11 +25,11 @@ router.get("/shift/:shift", authenticateAdmin, getStudentsByShift);
 // CRUD routes
 router.route("/")
   .get(authenticateAdmin, getAllStudents)
-  .post(authenticateAdmin, createStudent);
+  .post(authenticateAdmin, requiresAdminRole, createStudent);
 
 router.route("/:id")
   .get(authenticateAdmin, getStudentById)
-  .put(authenticateAdmin, updateStudent)
-  .delete(authenticateAdmin, deleteStudent);
+  .put(authenticateAdmin, requiresAdminRole, updateStudent)
+  .delete(authenticateAdmin, requiresAdminRole, deleteStudent);
 
 export default router;

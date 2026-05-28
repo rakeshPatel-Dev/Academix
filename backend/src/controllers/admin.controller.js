@@ -8,13 +8,20 @@ import { sendEmail, sendAdminLoginAlert, sendUserRegisteredAlert, sendVerificati
 // @route   POST /api/admins/register
 export const registerAdmin = async (req, res) => {
   try {
-    const { email, password, name, avatar, confirmPassword } = req.body;
+    const { email, password, name, avatar, confirmPassword, role } = req.body;
 
     // Validate required fields
     if (!email || !password || !name || !avatar || !confirmPassword) {
       return res.status(400).json({
         success: false,
         message: "Name, email, password and avatar, and confirm password are required.",
+      });
+    }
+
+    if (role && !["admin", "user"].includes(role)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid role. Role must be either 'admin' or 'user'.",
       });
     }
 
@@ -44,12 +51,14 @@ export const registerAdmin = async (req, res) => {
       email,
       password: hashedPassword,
       avatar,
+      role: role || "user"
     });
 
     // create token
     const token = jwt.sign({
       id: admin._id,
-      email: admin.email
+      email: admin.email,
+      role: admin.role
     }, process.env.JWT_SECRET, { expiresIn: "7d" });
 
     // Set cookie with proper options for browser
@@ -125,6 +134,7 @@ export const loginAdmin = async (req, res) => {
       {
         id: admin._id,
         email: admin.email,
+        role: admin.role
       },
       process.env.JWT_SECRET,
       { expiresIn: "7d" }
@@ -338,6 +348,15 @@ export const deleteAdminProfile = async (req, res) => {
       return res.status(400).json({
         success: false,
         message: "Cannot delete the last admin. At least one admin is required."
+      });
+    }
+
+    // Check single admin with role admin
+    const adminCount = await Admin.countDocuments({ role: "admin" });
+    if (admin.role === "admin" && adminCount === 1) {
+      return res.status(400).json({
+        success: false,
+        message: "Cannot delete the last admin with 'admin' role. At least one admin with 'admin' role is required."
       });
     }
 

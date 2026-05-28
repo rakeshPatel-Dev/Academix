@@ -24,6 +24,13 @@ const adminSchema = new mongoose.Schema(
       required: true,
     },
 
+    // ── Roles ─────────────────────────────────────
+    role: {
+      type: String,
+      enum: ["admin", "user"],
+      default: "user",
+    },
+
     // ── Verification ──────────────────────────────
     isVerified: {
       type: Boolean,
