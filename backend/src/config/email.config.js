@@ -4,6 +4,10 @@ import config from './env.config.js';
 const env = process.env.NODE_ENV || 'development';
 const smtpConfig = config[env].SMTP;
 
+if (!config[env] || !config[env].SMTP) {
+  throw new Error(`SMTP configuration missing for environment: ${env}`);
+}
+
 // Create reusable transporter
 const transporter = nodemailer.createTransport({
   service: smtpConfig.SERVICE,
