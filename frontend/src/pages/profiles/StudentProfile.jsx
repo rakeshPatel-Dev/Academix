@@ -17,11 +17,13 @@ import {
   Moon
 } from 'lucide-react';
 import axios from 'axios';
+import { useAuth} from "../../hooks/useAuth";
 
 const API_URL = import.meta.env.VITE_BACKEND_API_ENDPOINT;
 
 const StudentProfile = () => {
   const { id } = useParams();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [student, setStudent] = useState(null);
@@ -108,13 +110,15 @@ const StudentProfile = () => {
             <span className="text-gray-700">Back to Students</span>
           </button>
 
-          <button
-            onClick={() => navigate(`/students/edit/${student?._id}`)}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all shadow-sm"
-          >
-            <Edit size={18} />
-            <span>Edit Student</span>
-          </button>
+          {user?.role === 'admin' && (
+            <button
+              onClick={() => navigate(`/students/edit/${student?._id}`)}
+              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all shadow-sm"
+            >
+              <Edit size={18} />
+              <span>Edit Student</span>
+            </button>
+          )}
         </div>
 
         {/* Profile Header */}

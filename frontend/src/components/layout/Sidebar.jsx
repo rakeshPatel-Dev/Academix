@@ -331,7 +331,7 @@ const Sidebar = ({ collapsed, setCollapsed }) => {
                     </span>
                   )} */}
                 </div>
-                <p className="text-xs text-white/50 truncate">Administrator</p>
+                <p className="text-xs text-white/50 truncate capitalize">{user.role}</p>
               </div>
             )}
 

@@ -80,9 +80,9 @@ const AdminProfile = () => {
     }
     // Different default avatars based on verification status
     if (currentUser.isVerified) {
-      return 'https://ui-avatars.com/api/?name=' + encodeURIComponent(currentUser.name || 'Admin') + '&background=4F46E5&color=fff&size=128&bold=true';
+      return 'https://ui-avatars.com/api/?name=' + encodeURIComponent(currentUser.name || currentUser.role || 'User') + '&background=4F46E5&color=fff&size=128&bold=true';
     } else {
-      return 'https://ui-avatars.com/api/?name=' + encodeURIComponent(currentUser.name || 'Admin') + '&background=EF4444&color=fff&size=128&bold=true';
+      return 'https://ui-avatars.com/api/?name=' + encodeURIComponent(currentUser.name || currentUser.role || 'User') + '&background=EF4444&color=fff&size=128&bold=true';
     }
   };
 
@@ -122,7 +122,7 @@ const AdminProfile = () => {
           {/* Header */}
           <div className="mb-8 flex justify-between items-center">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Admin Profile</h1>
+              <h1 className="text-3xl font-bold text-gray-900 capitalize">{currentUser.role} Profile</h1>
               <p className="text-gray-600 mt-1">Manage your account information</p>
             </div>
             <button
@@ -168,9 +168,9 @@ const AdminProfile = () => {
                     {currentUser.email}
                   </p>
                   <div className="flex items-center gap-2 mt-2">
-                    <p className="text-white/90 text-sm flex items-center gap-1">
+                    <p className="text-white/90 text-sm flex items-center gap-1 capitalize">
                       <ShieldUser size={14} />
-                      Administrator
+                      {currentUser.role}
                     </p>
                     <span className="w-1 h-1 bg-white/60 rounded-full"></span>
                     {/* Verification Status Badge */}

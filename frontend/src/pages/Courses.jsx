@@ -17,11 +17,13 @@ import {
 } from 'lucide-react';
 import axios from "axios";
 import toast from 'react-hot-toast';
+import {useAuth} from '../hooks/useAuth';
 
 const API_URL = import.meta.env.VITE_BACKEND_API_ENDPOINT;
 
 const Courses = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [searchLoading, setSearchLoading] = useState(false);
   const [courses, setCourses] = useState([]);
@@ -228,6 +230,7 @@ const Courses = () => {
           <h1 className="text-3xl font-bold text-gray-800">Courses</h1>
           <p className="text-gray-500 text-sm mt-1">Manage all your courses here</p>
         </div>
+        {user?.role === "admin" && (
         <button
           onClick={() => navigate('/courses/new')}
           className="flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-sm hover:shadow"
@@ -235,6 +238,7 @@ const Courses = () => {
           <Plus size={18} />
           <span className="font-medium">Add New Course</span>
         </button>
+        )}
       </div>
 
       {/* Stats summary - Hide during search */}
@@ -338,10 +342,12 @@ const Courses = () => {
             </button>
           ) : (
             <button
-              onClick={() => navigate('/courses/new')}
+              onClick={() => 
+                user?.role === "admin" ? navigate('/courses/new') : navigate('/dashboard')
+              }
               className="px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
             >
-              Add Your First Course
+              {user?.role === "admin" ? "Add Your First Course" : "Go to Dashboard"}
             </button>
           )}
         </div>
@@ -379,7 +385,10 @@ const Courses = () => {
                   {/* Card Content */}
                   <div className="p-5">
                     {/* Title */}
-                    <h3 className="font-semibold text-gray-800 mb-2 line-clamp-1 text-lg">
+                    <h3 className="font-semibold text-gray-800 mb-2 line-clamp-1 text-lg cursor-pointer "
+
+                    onClick={() => navigate(`/courses/${course._id}`)}
+                    >
                       {course.title}
                     </h3>
 
@@ -470,6 +479,7 @@ const Courses = () => {
                     </div>
 
                     {/* Action Buttons */}
+                    {user?.role === "admin" && (
                     <div className="flex gap-2 pt-3 border-t border-gray-100">
                       <button
                         onClick={() => navigate(`/courses/edit/${course._id}`)}
@@ -492,15 +502,11 @@ const Courses = () => {
                           </>
                         )}
                       </button>
-                      <button
-                        onClick={() => navigate(`/courses/${course._id}`)}
-                        className="px-3 py-2 text-sm text-gray-500 hover:bg-gray-100 rounded-lg transition-colors"
-                        title="View details"
-                      >
-                        <ChevronRight size={14} />
-                      </button>
+
                     </div>
+                    )}
                   </div>
+                  
                 </div>
               );
             })}

@@ -22,11 +22,13 @@ import {
 } from 'lucide-react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
+import { useAuth } from '../hooks/useAuth';
 
 const API_URL = import.meta.env.VITE_BACKEND_API_ENDPOINT;
 
 const Students = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [students, setStudents] = useState([]);
   const [courses, setCourses] = useState([]);
@@ -202,6 +204,7 @@ const Students = () => {
           <h1 className="text-3xl font-bold text-gray-800">Students</h1>
           <p className="text-gray-500 text-sm mt-1">Manage all your students and their course enrollments</p>
         </div>
+      {user?.role === 'admin' && (
         <button
           onClick={() => navigate('/students/new')}
           className="flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-sm hover:shadow"
@@ -209,6 +212,7 @@ const Students = () => {
           <Plus size={18} />
           <span className="font-medium">Add New Student</span>
         </button>
+      )}
       </div>
 
       {/* Stats summary */}
@@ -277,10 +281,12 @@ const Students = () => {
             </button>
           ) : (
             <button
-              onClick={() => navigate('/students/new')}
+              onClick={() =>
+                user?.role === 'admin'? navigate('/students/new') : navigate('/dashboard')
+              }
               className="px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
             >
-              Add Your First Student
+              {user?.role === 'admin' ? 'Add Your First Student' : 'Go to Dashboard'}
             </button>
           )}
         </div>
@@ -297,7 +303,9 @@ const Students = () => {
                 className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-all group"
               >
                 {/* Header with avatar and name */}
-                <div className="p-5 bg-gradient-to-r from-blue-50 to-purple-50 border-b border-gray-100">
+                <div className="p-5 bg-gradient-to-r from-blue-50 to-purple-50 border-b border-gray-100 cursor-pointer"
+                onClick={() => navigate(`/students/${studentId}`)}
+                >
                   <div className="flex items-start gap-4">
                     <div className="flex-shrink-0">
                       {student.avatar || student.image ? (
@@ -319,7 +327,8 @@ const Students = () => {
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-gray-800 truncate text-lg">{student.name}</h3>
+                      <h3 className="font-semibold text-gray-800 truncate text-lg "
+                      >{student.name}</h3>
                       <span className={`inline-block text-xs px-2 py-1 rounded-full mt-2 ${getShiftColor(student.shift)}`}>
                         <Clock size={10} className="inline mr-1" />
                         {student.shift?.charAt(0).toUpperCase() + student.shift?.slice(1)} Shift
@@ -399,6 +408,7 @@ const Students = () => {
                 </div>
 
                 {/* Action buttons */}
+                {user?.role === 'admin' && (
                 <div className="p-4 bg-gray-50 border-t border-gray-100 flex gap-2">
                   <button
                     onClick={() => navigate(`/students/edit/${studentId}`)}
@@ -421,14 +431,8 @@ const Students = () => {
                       </>
                     )}
                   </button>
-                  <button
-                    onClick={() => navigate(`/students/${studentId}`)}
-                    className="px-3 py-2.5 text-sm text-gray-500 hover:bg-gray-200 rounded-lg transition-colors"
-                    title="View details"
-                  >
-                    <ChevronRight size={14} />
-                  </button>
                 </div>
+                )}
               </div>
             );
           })}

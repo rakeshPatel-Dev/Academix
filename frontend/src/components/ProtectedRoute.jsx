@@ -4,7 +4,9 @@ import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 
 const ProtectedRoute = ({ children }) => {
-  const { isAuthenticated, loading } = useAuth();
+  const { isAuthenticated, loading, user } = useAuth();
+
+
   const location = useLocation();
 
   if (loading) {
@@ -23,6 +25,7 @@ const ProtectedRoute = ({ children }) => {
     // Redirect to login page but save the location they tried to access
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
+
 
   return children;
 };

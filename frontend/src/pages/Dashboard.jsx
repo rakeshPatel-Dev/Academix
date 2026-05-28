@@ -108,6 +108,11 @@ const Dashboard = () => {
     fetchDashboardStats();
   }, [isAuthenticated]);
 
+
+  // fetch current user info for role-based access control
+  const { user } = useAuth();
+
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -393,7 +398,10 @@ const Dashboard = () => {
 
         <div className="flex flex-wrap gap-3">
           <button
-            onClick={() => navigate('/courses/new')}
+            onClick={() => 
+              user.role === 'admin' ? navigate('/courses/new') :
+              navigate('/courses')
+            }
             className="group flex items-center gap-2 px-5 py-3 bg-linear-to-r from-blue-500 to-blue-600 text-white rounded-xl
                  hover:shadow-lg hover:shadow-blue-500/30 hover:scale-105
                  active:scale-95
@@ -401,11 +409,14 @@ const Dashboard = () => {
                  border border-blue-600 hover:border-blue-700"
           >
             <PlusCircle size={18} className="group-hover:rotate-90 transition-transform duration-300" />
-            New Course
+            { user.role === 'admin' ? 'Add Course' : 'View Courses'}
           </button>
 
           <button
-            onClick={() => navigate('/students/new')}
+            onClick={() => 
+              user.role === 'admin' ? navigate('/students/new') :
+              navigate('/students')
+            }
             className="group flex items-center gap-2 px-5 py-3 bg-linear-to-r from-green-500 to-green-600 text-white rounded-xl
                  hover:shadow-lg hover:shadow-green-500/30 hover:scale-105
                  active:scale-95
@@ -413,11 +424,14 @@ const Dashboard = () => {
                  border border-green-600 hover:border-green-700"
           >
             <PlusCircle size={18} className="group-hover:rotate-90 transition-transform duration-300" />
-            Add Student
+            { user.role === 'admin' ? 'Add Student' : 'View Students'}
           </button>
 
           <button
-            onClick={() => navigate('/teachers/new')}
+            onClick={() => 
+              user.role === 'admin' ? navigate('/teachers/new') :
+              navigate('/teachers')
+            }
             className="group flex items-center gap-2 px-5 py-3 bg-linear-to-r from-purple-500 to-purple-600 text-white rounded-xl
                  hover:shadow-lg hover:shadow-purple-500/30 hover:scale-105
                  active:scale-95
@@ -425,7 +439,7 @@ const Dashboard = () => {
                  border border-purple-600 hover:border-purple-700"
           >
             <PlusCircle size={18} className="group-hover:rotate-90 transition-transform duration-300" />
-            Add Teacher
+            { user.role === 'admin' ? 'Add Teacher' : 'View Teachers'}
           </button>
         </div>
       </div>
