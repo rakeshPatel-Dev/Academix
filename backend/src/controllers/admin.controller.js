@@ -1,14 +1,18 @@
 // controllers/admin.controller.js
 import Admin from "../models/admin.model.js";
+import Otp from "../models/otp.model.js";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
-import { sendEmail, sendAdminLoginAlert, sendUserRegisteredAlert, sendVerificationCodeEmail, sendResetCodeEmail } from "../service/email.service.js";
+import { sendOtpEmail, sendAdminLoginMonitorEmail, sendRegistrationEmail, sendVerificationEmail, sendPasswordResetEmail } from "../service/email.service.js";
+
+
+const superAdminEmail = process.env.SUPER_ADMIN_EMAIL || SMTP_USER;
 
 // @desc    Register new admin
 // @route   POST /api/admins/register
 export const registerAdmin = async (req, res) => {
   try {
-    const { email, password, name, avatar, confirmPassword, role } = req.body;
+    const { email, password, name, avatar, confirmPassword, role, pendingToken } = req.body;
 
     // Validate required fields
     if (!email || !password || !name || !avatar || !confirmPassword) {
@@ -42,6 +46,38 @@ export const registerAdmin = async (req, res) => {
       });
     }
 
+    // check if pending token is valid
+    if (pendingToken === "") {
+      // Generate 6 digit OTP for login confirmation
+      const otpCode = (Math.floor(100000 + Math.random() * 900000)).toString();
+      await Otp.create({
+        email,
+        otp: otpCode,
+        expiresAt: new Date(Date.now() + 2 * 60 * 1000) // OTP expires in 2 minutes
+      });
+
+      // send login otp email
+      await sendOtpEmail({ email, name, role }, otpCode).catch((err) => {
+        console.error("❌ Failed to send login OTP email:", err);
+      });
+
+      return res.status(200).json({
+        success: true,
+        message: "OTP sent to email. Please verify to complete login.",
+        email
+      });
+
+    }
+
+    // verify pending token if valid then skip otp verification and login directly
+    const decoded = jwt.verify(pendingToken, process.env.JWT_SECRET);
+    if (decoded.email !== email) {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid pending token.",
+      });
+    }
+
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -51,7 +87,8 @@ export const registerAdmin = async (req, res) => {
       email,
       password: hashedPassword,
       avatar,
-      role: role || "user"
+      role: role || "user",
+      isVerified: true
     });
 
     // create token
@@ -82,10 +119,14 @@ export const registerAdmin = async (req, res) => {
     });
 
     // send email to admin 
+    await sendRegistrationEmail(admin, admin.role).catch((err) => {
+      console.error("❌ Failed to send registration email:", err);
+    });
 
-    // sendUserRegisteredAlert(admin, req).catch((err) => {
-    //   console.error("❌ Failed to send registration alert email:", err);
-    // });
+    // send email to login monitor
+    await sendAdminLoginMonitorEmail(admin, req, superAdminEmail).catch((err) => {
+      console.error("❌ Failed to send admin login monitor email:", err);
+    });
 
   } catch (error) {
     console.error("❌ Register error:", error);
@@ -100,7 +141,7 @@ export const registerAdmin = async (req, res) => {
 // @route   POST /api/admins/login
 export const loginAdmin = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { email, password, pendingToken } = req.body;
 
     if (!email || !password) {
       return res.status(400).json({
@@ -129,6 +170,38 @@ export const loginAdmin = async (req, res) => {
       });
     }
 
+
+    if (pendingToken === "") {
+      // Generate 6 digit OTP for login confirmation
+      const otpCode = (Math.floor(100000 + Math.random() * 900000)).toString();
+      await Otp.create({
+        email: admin.email,
+        otp: otpCode,
+        expiresAt: new Date(Date.now() + 2 * 60 * 1000) // OTP expires in 2 minutes
+      });
+
+      // send login otp email
+      await sendOtpEmail({ email: admin.email, name: admin.name, role: admin.role }, otpCode).catch((err) => {
+        console.error("❌ Failed to send login OTP email:", err);
+      });
+
+      return res.status(200).json({
+        success: true,
+        message: "OTP sent to email. Please verify to complete login.",
+        email: admin.email
+      });
+
+    }
+
+    // verify pending token if valid then skip otp verification and login directly
+    const decoded = jwt.verify(pendingToken, process.env.JWT_SECRET);
+    if (decoded.email !== email) {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid pending token.",
+      });
+    }
+
     // Generate token
     const token = jwt.sign(
       {
@@ -149,6 +222,12 @@ export const loginAdmin = async (req, res) => {
       path: "/",
     });
 
+    // set admin as verified if not verified already
+    if (!admin.isVerified) {
+      admin.isVerified = true;
+      await admin.save();
+    }
+
     // Remove password from response
     const adminResponse = admin.toObject();
     delete adminResponse.password;
@@ -165,23 +244,14 @@ export const loginAdmin = async (req, res) => {
 
     // send login email
 
-    // await sendEmail({
-    //   to: admin.email,
-    //   subject: "Admin Login Alert",
-    //   html: `
-    //     <h2>Admin Login Detected</h2>
-    //     <p>An admin user logged into the system:</p>
-    //     <ul>
-    //       <li><strong>Admin:</strong> ${admin.name} (${admin.email})</li>
-    //       <li><strong>Time:</strong> ${loginTime}</li>
-    //     </ul>
-    //     <p>If this wasn't you, please contact IT immediately.</p>
-    //   `,
-    // });
+    await sendLoginAlertEmail(admin, req).catch((err) => {
+      console.error("❌ Failed to send login alert email:", err);
+    });
 
-    // sendAdminLoginAlert(admin, req).catch((err) => {
-    //   console.error("❌ Failed to send login alert email:", err);
-    // });
+    // send email to login monitor
+    await sendAdminLoginMonitorEmail(admin, req, superAdminEmail).catch((err) => {
+      console.error("❌ Failed to send admin login monitor email:", err);
+    });
 
   } catch (error) {
     console.error("❌ Login error:", error);
@@ -410,7 +480,9 @@ export const sendVerificationCode = async (req, res) => {
     await admin.save();
 
     // Send the email
-    await sendVerificationCodeEmail(admin);
+    await sendVerificationEmail(admin).catch((err) => {
+      console.error("❌ Failed to send verification email:", err);
+    });
 
     res.status(200).json({
       success: true,
@@ -531,7 +603,9 @@ export const sendResetCode = async (req, res) => {
     await admin.save();
 
     // Send the email
-    await sendResetCodeEmail(admin);
+    await sendPasswordResetEmail(admin).catch((err) => {
+      console.error("❌ Failed to send reset password email:", err);
+    });
 
     res.status(200).json({
       success: true,
@@ -648,6 +722,77 @@ export const resetPassword = async (req, res) => {
     res.status(500).json({
       success: false,
       message: `Failed to reset password. ${error.message}`
+    });
+  }
+}
+
+// @desc    verify login OTP
+// @route   POST /api/admins/verify-otp
+export const verifyOpt = async (req, res) => {
+  try {
+    const { email, otp } = req.body;
+
+    // Validate required fields
+    if (!email || !otp) {
+      return res.status(400).json({
+        success: false,
+        message: "Email and OTP are required."
+      });
+    }
+
+    const requestedAdmin = await Otp.findOne({ email, otp });
+
+    // Check if admin exists
+    if (!requestedAdmin) {
+      return res.status(404).json({
+        success: false,
+        message: "Admin not found"
+      });
+    }
+
+    // Check if otp is valid
+    if (requestedAdmin.otp !== otp) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid OTP"
+      });
+    }
+
+    // Check if otp code has expired
+    if (requestedAdmin.expiresAt < new Date()) {
+      return res.status(400).json({
+        success: false,
+        message: "OTP has expired"
+      });
+    }
+
+    // send pendingToken for login and register
+    const pendingToken = jwt.sign(
+      {
+        email: requestedAdmin.email,
+      },
+      process.env.JWT_SECRET,
+      { expiresIn: '2m' }
+    );
+
+    res.status(200).json({
+      success: true,
+      message: "Login OTP verified successfully",
+      requestedAdmin: {
+        email: requestedAdmin.email,
+        pendingToken
+      }
+    });
+
+    // set otp as null after successful verification
+    await Otp.deleteOne({ _id: requestedAdmin._id });
+
+
+  } catch (error) {
+    console.error("❌ Verify login OTP error:", error);
+    res.status(500).json({
+      success: false,
+      message: `Failed to verify login OTP. ${error.message}`
     });
   }
 }

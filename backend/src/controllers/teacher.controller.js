@@ -2,7 +2,7 @@
 import Teacher from "../models/teacher.model.js";
 import Course from "../models/course.model.js";
 import Student from "../models/student.model.js";
-import { sendProfileCreatedEmail } from "../service/email.service.js";
+import { sendRegistrationEmail } from "../service/email.service.js";
 
 // @desc    Get all teachers
 // @route   GET /api/teachers
@@ -187,8 +187,8 @@ export const createTeacher = async (req, res) => {
 
 
     // send email
-    sendProfileCreatedEmail(teacher, 'teacher').catch((err) => {
-      console.error("❌ Failed to send profile created email:", err);
+    await sendRegistrationEmail(teacher, 'teacher').catch((err) => {
+      console.error("❌ Failed to send registration email:", err);
     });
 
   } catch (error) {

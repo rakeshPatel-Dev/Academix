@@ -11,7 +11,7 @@ import dashboardRoutes from "./routes/dashboard.route.js"
 const app = express();
 
 // ✅ CORS must come first
-const allowedOrigins = [process.env.FRONTEND_URL].filter(Boolean);
+const allowedOrigins = [process.env.FRONTEND_URL, process.env.FRONTEND_URL1].filter(Boolean);
 
 if (process.env.NODE_ENV !== "production") {
   allowedOrigins.push("http://localhost:5173");

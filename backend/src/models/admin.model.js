@@ -45,20 +45,6 @@ const adminSchema = new mongoose.Schema(
       default: null,
     },
 
-    // ── OTP (2FA / login confirmation) ────────────
-    otp: {
-      type: String,
-      default: null,
-    },
-    otpExpire: {
-      type: Date,
-      default: null,
-    },
-    twoFA: {
-      type: Boolean,
-      default: false,
-    },
-
   },
   { timestamps: true }
 );

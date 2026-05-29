@@ -1,8 +1,7 @@
 // controllers/student.controller.js
 import Student from "../models/student.model.js";
 import Course from "../models/course.model.js";
-import mongoose from "mongoose";
-import { sendProfileCreatedEmail } from "../service/email.service.js";
+import { sendRegistrationEmail } from "../service/email.service.js";
 
 // @desc    Get all students
 // @route   GET /api/students
@@ -164,8 +163,8 @@ export const createStudent = async (req, res) => {
 
 
     // send email to the student
-    sendProfileCreatedEmail(student, 'student').catch((err) => {
-      console.error("❌ Failed to send profile created email:", err);
+    sendRegistrationEmail(student, 'student').catch((err) => {
+      console.error("❌ Failed to send registration email:", err);
     });
 
   } catch (error) {

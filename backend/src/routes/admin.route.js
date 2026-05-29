@@ -11,7 +11,8 @@ import {
   sendResetCode,
   validateResetCode,
   resetPassword,
-  deleteAdminProfile
+  deleteAdminProfile,
+  verifyOpt
 } from '../controllers/admin.controller.js';
 import { authenticateAdmin } from '../middlewares/auth.middleware.js';
 
@@ -24,6 +25,7 @@ router.post('/logout', logoutAdmin);
 router.post('/reset-password/send-code', sendResetCode);
 router.post('/reset-password/verify-code', validateResetCode);
 router.post('/reset-password', resetPassword);
+router.post('/verify-otp', verifyOpt);
 
 // Protected routes (authentication required)
 router.get('/profile', authenticateAdmin, getCurrentAdminProfile);
