@@ -12,110 +12,180 @@ const sendEmail = async ({ to, subject, html }) => {
     };
 
     const info = await transporter.sendMail(mailOptions);
-    console.log(`Email sent: ${info.messageId}`);
-    return { success: true, messageId: info.messageId };
+    console.log(`Email sent to ${to}: ${info.messageId}`);
+    return { success: true, messageId: info.messageId, to };
   } catch (error) {
     console.error('Error sending email:', error);
-    return { success: false, error: error.message };
+    return { success: false, error: error.message, to };
   }
 };
 
-// Specific email functions
-const sendProfileCreatedEmail = async (user, role) => {
-  let emailData = {
+// ==================== REGISTRATION EMAILS ====================
+
+const sendRegistrationEmail = async (user, role) => {
+  const emailData = {
     name: user.name,
     email: user.email,
-    phone: user.phone,
+    timestamp: new Date().toLocaleString(),
   };
 
-  const validRoles = ['student', 'teacher'];
-  if (!validRoles.includes(role)) {
-    console.error(`Invalid role for profile email: ${role}`);
-    return { success: false, error: `Invalid role: ${role}` };
+  switch (role) {
+    case 'admin':
+      return sendEmail({
+        to: user.email,
+        ...templates.adminRegistered({
+          ...emailData,
+          role: 'Administrator',
+        }),
+      });
+
+    case 'teacher':
+      return sendEmail({
+        to: user.email,
+        ...templates.welcomeTeacher({
+          ...emailData,
+          phone: user.phone,
+          post: user.post,
+          address: user.address,
+          coursesCount: user.courseId?.length || 0,
+        }),
+      });
+
+    case 'student':
+      return sendEmail({
+        to: user.email,
+        ...templates.welcomeStudent({
+          ...emailData,
+          phone: user.phone,
+          shift: user.shift,
+          address: user.address,
+          coursesCount: user.courses?.length || 0,
+        }),
+      });
+
+    case 'user':
+    default:
+      return sendEmail({
+        to: user.email,
+        ...templates.userRegistered({
+          ...emailData,
+          role: 'User',
+        }),
+      });
   }
-
-  // Add role-specific data
-  if (role === 'student') {
-    emailData = {
-      ...emailData,
-      shift: user.shift,
-      address: user.address,
-      coursesCount: user.courses?.length || 0,
-    };
-  } else if (role === 'teacher') {
-    emailData = {
-      ...emailData,
-      post: user.post,
-      address: user.address,
-      coursesCount: user.courseId?.length || 0,
-    };
-  }
-
-  const template = role === 'teacher' ? templates.welcomeTeacher : templates.welcomeStudent;
-
-  return sendEmail({
-    to: user.email,
-    ...template(emailData),
-  });
 };
 
-// send admin login alert
-const sendAdminLoginAlert = async (admin, req) => {
+// ==================== LOGIN ALERT EMAILS ====================
 
+const sendLoginAlertEmail = async (user, req) => {
   const clientIp = req.headers['x-forwarded-for']?.split(',')[0]?.trim()
     || req.ip
     || req.socket?.remoteAddress;
 
+  const loginData = {
+    name: user.name,
+    email: user.email,
+    timestamp: new Date().toLocaleString(),
+    ipAddress: clientIp,
+    location: req.headers['cf-ipcountry'] || req.headers['x-geoip-country'] || 'Unknown',
+    userAgent: req.headers['user-agent'],
+  };
 
-  return sendEmail({
-    to: admin.email,
-    ...templates.adminLoginAlert({
-      name: admin.name,
-      email: admin.email,
-      timestamp: new Date().toLocaleString(),
-      ipAddress: clientIp,
-      userAgent: req.headers['user-agent'],
-    }),
-  });
+  switch (user.role) {
+    case 'admin':
+      return sendEmail({
+        to: user.email,
+        ...templates.adminLoginAlert({
+          ...loginData,
+          role: 'Administrator',
+        }),
+      });
+
+    case 'user':
+      return sendEmail({
+        to: user.email,
+        ...templates.userLoginAlert({
+          ...loginData,
+          role: 'User',
+        }),
+      });
+
+    case 'teacher':
+    case 'student':
+    default:
+      // Teachers and students get the standard user login alert
+      return sendEmail({
+        to: user.email,
+        ...templates.userLoginAlert({
+          ...loginData,
+          role: user.role.charAt(0).toUpperCase() + user.role.slice(1),
+        }),
+      });
+  }
 };
 
-// send user registered alert
-const sendUserRegisteredAlert = async (newUser) => {
-  return sendEmail({
-    to: newUser.email,
-    ...templates.userRegistered({
-      name: newUser.name,
-      email: newUser.email,
-      role: "Admin",
-      timestamp: new Date().toLocaleString(),
-    }),
-  });
+// ==================== OTP EMAILS ====================
+
+const sendOtpEmail = async (user, otpCode) => {
+  const otpData = {
+    name: user.name,
+    email: user.email,
+    code: otpCode,
+  };
+
+  switch (user.role) {
+    case 'admin':
+      return sendEmail({
+        to: user.email,
+        ...templates.otpLoginAdmin({
+          ...otpData,
+          role: 'Administrator',
+        }),
+      });
+
+    case 'user':
+    case 'teacher':
+    case 'student':
+    default:
+      return sendEmail({
+        to: user.email,
+        ...templates.otpLogin({
+          ...otpData,
+          role: user.role || 'User',
+        }),
+      });
+  }
 };
 
-// send verification code
-const sendVerificationCodeEmail = async (admin) => {
+// ==================== VERIFICATION EMAILS ====================
+
+const sendVerificationEmail = async (user) => {
   return sendEmail({
-    to: admin.email,
+    to: user.email,
     ...templates.emailVerificationCode({
-      name: admin.name,
-      code: admin.verificationCode
+      name: user.name,
+      email: user.email,
+      code: user.verificationCode,
     }),
   });
 };
 
-// send reset code
-const sendResetCodeEmail = async (admin) => {
+// ==================== PASSWORD RESET EMAILS ====================
+
+const sendPasswordResetEmail = async (user) => {
   return sendEmail({
-    to: admin.email,
+    to: user.email,
     ...templates.resetPassword({
-      name: admin.name,
-      email: admin.email,
-      code: admin.verificationCode
+      name: user.name,
+      email: user.email,
+      code: user.resetCode || user.verificationCode,
     }),
   });
 };
 
-const sendCourseAssignedEmail = async (assignment) => {
+// ==================== COURSE ASSIGNMENT EMAILS ====================
+
+const sendCourseAssignmentEmail = async (assignment) => {
   if (assignment.type === 'teacher') {
     return sendEmail({
       to: assignment.teacher.email,
@@ -127,7 +197,7 @@ const sendCourseAssignedEmail = async (assignment) => {
         semester: assignment.semester,
       }),
     });
-  } else {
+  } else if (assignment.type === 'student') {
     return sendEmail({
       to: assignment.student.email,
       ...templates.courseAssignedStudent({
@@ -136,17 +206,46 @@ const sendCourseAssignedEmail = async (assignment) => {
         courseCode: assignment.course.code,
         instructor: assignment.course.instructor,
         schedule: assignment.course.schedule,
+        instructorEmail: assignment.course.instructorEmail,
       }),
     });
   }
+  return { success: false, error: 'Invalid assignment type' };
 };
 
+// ==================== MONITORING EMAILS (For Super Admin) ====================
+
+const sendAdminLoginMonitorEmail = async (admin, req, superAdminEmail) => {
+  const clientIp = req.headers['x-forwarded-for']?.split(',')[0]?.trim()
+    || req.ip
+    || req.socket?.remoteAddress;
+
+  return sendEmail({
+    to: superAdminEmail,
+    ...templates.adminLoginAlertForSuperAdmin({
+      name: admin.name,
+      email: admin.email,
+      role: 'Administrator',
+      timestamp: new Date().toLocaleString(),
+      ipAddress: clientIp,
+      location: req.headers['cf-ipcountry'] || req.headers['x-geoip-country'] || 'Unknown',
+      userAgent: req.headers['user-agent'],
+    }),
+  });
+};
+
+// ==================== EXPORTS ====================
+
 export {
+  // Core function
   sendEmail,
-  sendProfileCreatedEmail,
-  sendAdminLoginAlert,
-  sendVerificationCodeEmail,
-  sendResetCodeEmail,
-  sendUserRegisteredAlert,
-  sendCourseAssignedEmail,
+
+  // Individual senders
+  sendRegistrationEmail,
+  sendLoginAlertEmail,
+  sendOtpEmail,
+  sendVerificationEmail,
+  sendPasswordResetEmail,
+  sendCourseAssignmentEmail,
+  sendAdminLoginMonitorEmail,
 };
