@@ -18,13 +18,28 @@ const Login = () => {
 
     try {
       const res = await login(formData.email, formData.password);
+
       if (res?.success) {
-        toast.success('Login successful! Redirecting to dashboard...');
-        navigate('/dashboard');
+        if (res.requiresOtp) {
+          toast.success(res.message || 'OTP sent to your email.');
+          navigate('/verify-otp', {
+            state: {
+              mode: 'login',
+              email: res.email || formData.email,
+              password: formData.password,
+            },
+            replace: true,
+          });
+          return;
+        }
+
+        toast.success('Login successful! Redirecting...');
+        navigate('/dashboard', { replace: true });
       }
     } catch (err) {
       // useAuth should handle error state, but log for debugging
       console.error('Login failed:', err);
+      toast.error(err.message || 'Login failed');
     }
   };
 

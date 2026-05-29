@@ -62,13 +62,25 @@ const Register = () => {
       };
 
       const res = await register(registrationData);
-      if (res.success) {
-        toast.success('Registration successful! Redirecting to dashboard...');
-        setTimeout(() => {
-          navigate('/dashboard');
-        }, 1000);
+
+      if (res?.success) {
+        if (res.requiresOtp) {
+          toast.success(res.message || 'OTP sent to your email.');
+          navigate('/verify-otp', {
+            state: {
+              mode: 'register',
+              email: res.email || formData.email,
+              registrationData,
+            },
+            replace: true,
+          });
+          return;
+        }
+
+        toast.success('Registration successful! Redirecting...');
+        navigate('/dashboard', { replace: true });
       } else {
-        toast.error(res.message);
+        toast.error(res?.error || 'Registration failed');
       }
     } catch (err) {
       toast.error(err.message);

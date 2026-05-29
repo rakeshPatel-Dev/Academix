@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 // hooks/useAuth.js
 import { useState, useEffect, createContext, useContext } from 'react';
 import axios from 'axios';
@@ -45,20 +46,30 @@ export const AuthProvider = ({ children }) => {
   };
 
   // Login function
-  const login = async (email, password) => {
+  const login = async (email, password, pendingToken = '') => {
     try {
       setLoading(true);
       setError(null);
 
       const response = await axios.post(`${API_URL}/login`, {
         email,
-        password
+        password,
+        pendingToken
       }, { withCredentials: true });
 
       if (response.data.success) {
+        if (response.data.message?.toLowerCase().includes('otp sent')) {
+          return {
+            success: true,
+            requiresOtp: true,
+            email: response.data.email || email,
+            message: response.data.message,
+          };
+        }
+
         setUser(response.data.data);
         setIsAuthenticated(true);
-        return { success: true, data: response.data.data };
+        return { success: true, data: response.data.data, token: response.data.token };
       }
       return { success: false, error: response.data.message };
     } catch (error) {
@@ -70,6 +81,32 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const verifyOtp = async (email, otp) => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await axios.post(`${API_URL}/verify-otp`, {
+        email,
+        otp
+      }, { withCredentials: true });
+
+      if (response.data.success) {
+        return {
+          success: true,
+          pendingToken: response.data.requestedAdmin?.pendingToken,
+          email: response.data.requestedAdmin?.email || email,
+          message: response.data.message,
+        };
+      }
+      return { success: false, error: response.data.message };
+    } catch (error) {
+      const message = error.response?.data?.message || 'Login failed';
+      setError(message);
+      return { success: false, error: message };
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // forget password function
   const forgetPassword = async (email) => {
@@ -101,9 +138,23 @@ export const AuthProvider = ({ children }) => {
       setLoading(true);
       setError(null);
 
-      const response = await axios.post(`${API_URL}/register`, userData, { withCredentials: true });
+      const payload = {
+        ...userData,
+        pendingToken: userData.pendingToken ?? '',
+      };
+
+      const response = await axios.post(`${API_URL}/register`, payload, { withCredentials: true });
 
       if (response.data.success) {
+        if (response.data.message?.toLowerCase().includes('otp sent')) {
+          return {
+            success: true,
+            requiresOtp: true,
+            email: response.data.email || payload.email,
+            message: response.data.message,
+          };
+        }
+
         return { success: true, data: response.data.data };
       }
     } catch (error) {
@@ -173,6 +224,7 @@ export const AuthProvider = ({ children }) => {
     error,
     isAuthenticated,
     login,
+    verifyOtp,
     logout,
     forgetPassword,
     register,

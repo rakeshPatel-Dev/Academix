@@ -20,6 +20,7 @@ import { Toaster } from 'react-hot-toast';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import AdminProfile from './pages/Profile';
+import VerifyOtp from './pages/VerifyOtp';
 
 // Layout for authenticated pages (with sidebar)
 function AuthenticatedLayout({ children }) {
@@ -59,7 +60,7 @@ function AuthLayout({ children }) {
 
 function AppContent() {
   const location = useLocation();
-  const isAuthPage = location.pathname === '/login' || location.pathname === '/register';
+  const isAuthPage = location.pathname === '/login' || location.pathname === '/register' || location.pathname === '/verify-otp';
 
   if (isAuthPage) {
     return (
@@ -68,6 +69,7 @@ function AppContent() {
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/verify-otp" element={<VerifyOtp />} />
           {/* Redirect any other auth routes to login */}
           <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
